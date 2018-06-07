@@ -6,6 +6,7 @@ NAME =		@NAME@
 PKG_NAME =	@PKG_NAME@
 VER =		@PKG_VER@
 INIT =		@INIT@
+FOR_WHAT =	@FOR_WHAT@
 
 prefix =	@prefix@
 srcdir =	@srcdir@
@@ -33,7 +34,7 @@ LDFLAGS_SH =	@LDFLAGS_SH@
 TDEFS =		@TDEFS@
 JDEFS =		@JDEFS@
 DEFS =		@DEFS@
-SPOTO_DEFS =	@SPOTO_DEFS@
+SPOTO_DEFS =	@SPOTO_DEFS@ -DFOR_WHAT=\"$(FOR_WHAT)\"
 EXT_DEFS =	@EXT_DEFS@
 EXT_INC_SPEC =	@EXT_INC_SPEC@
 EXT_LIB_SPEC =	@EXT_LIB_SPEC@
@@ -68,7 +69,7 @@ EXT_DEP_FILES =	@EXT_DEP_FILES@
 
 BJE		= @BJE@
 SHELL		= @SHELL@
-TCL_PKG_ENV	= @LD_LIBRARY_PATH_VAR@=".:$(@LD_LIBRARY_PATH_VAR@)" TCLLIBPATH="@TCLLIBPATH@" @TCLTMPATHVAR@="."
+TCL_PKG_ENV	= @LD_LIBRARY_PATH_VAR@=".:$(@LD_LIBRARY_PATH_VAR@)" TCLLIBPATH="@TCLLIBPATH@" TCL8_5_TM_PATH='.' TCL8_6_TM_PATH='.'
 JIM_PKG_ENV	= JIMLIB="@JIMLIB@"
 TCLSH_PROG	= @TCLSH_PROG@
 TCLSH		= $(TCL_PKG_ENV) $(TCLSH_PROG)
@@ -76,6 +77,7 @@ JIMSH_PROG	= @JIMSH_PROG@
 JIMSH		= $(JIM_PKG_ENV) $(JIMSH_PROG)
 SCRIPT		=
 
+TESTENV		= @TESTENV@
 TESTFWK		= @TESTFWK@
 TESTFLAGS	=
 
@@ -118,6 +120,7 @@ $(OBJ): $(SRC) $(EXT_DEP_FILES)
 	$(TH_DEFS) \
 	$(OPT_DEFS) \
 	$(EXT_DEFS) \
+	$(SPOTO_DEFS) \
 	$(INC_SPEC) \
 	-o $@ $<
 
@@ -160,17 +163,12 @@ clean-pkgIndex.tcl:
 clean-cfg_pkgIndex.tcl:
 	rm -f pkgIndex.tcl
 
-clean-@PKG_NAME@.html:
-	if test -h @PKG_NAME@.html ; then \
-	    rm -f @PKG_NAME@.html ; \
+clean-doc:
+	if test X"$(DOC)" != X"" && test -h "$(DOC)" ; then \
+	    rm -f "$(DOC)" ; \
 	fi
 
-clean-@PKG_NAME@.n:
-	if test -h @PKG_NAME@.n ; then \
-	    rm -f @PKG_NAME@.n ; \
-	fi
-
-clean: clean-@PKGINDEX@ clean-@DOC@
+clean: clean-@PKGINDEX@ clean-doc
 	rm -f $(SHLIB) $(OBJ) *.core
 	if test X"$(SCLIB)" != X"" && test -h "$(SCLIB)" ; then \
 	    rm -f "$(SCLIB)" ; \
@@ -191,15 +189,14 @@ shell-Jim: all
 shell: shell-@FOR_WHAT@
 
 test-Tcl: all
-	$(TCLSH) $(srcdir)/tests/$(TESTFWK) $(TESTFLAGS)
+	$(TESTENV) $(TCLSH) $(srcdir)/tests/$(TESTFWK) $(TESTFLAGS)
 
 test-Jim: all
-	for i in $(srcdir)/tests/*.test; do $(JIMSH) $$i $(TESTFLAGS); done
+	for i in $(srcdir)/tests/*.test; do $(TESTENV) $(JIMSH) $$i $(TESTFLAGS); done
 
 test: test-@FOR_WHAT@
 
-install: all install-lib @INSTALL_DOC@ @INSTALL_BIN@
-#  install-exa
+install: all install-lib @INSTALL_DOC@ @INSTALL_BIN@ @INSTALL_EXA@
 
 install-lib:
 	@echo "Installing lib files in $(DESTDIR)$(PKG_INSTALL_DIR)/"
@@ -294,6 +291,6 @@ dist: dist-clean
 .PHONY: all shell test install install-lib install-doc install-exa dist clean distclean
 .PHONY: test-Tcl test-Jim
 
-# Spot o' Conf 0.5
+# Spot o' Conf 0.6
 
 # EOF

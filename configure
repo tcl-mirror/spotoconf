@@ -16,7 +16,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-SPOTO_VER=0.5
+SPOTO_VER=0.6
 
 SHELL=/bin/sh
 e='printf %s\n'
@@ -25,6 +25,7 @@ AWK=awk
 TR=tr
 
 NAME=spot
+TITLE=''
 PKG_NAME=spot
 PKG_VER=0.0
 
@@ -39,7 +40,6 @@ if test X"${TCL}" = X""; then
 fi
 tcl="${TCL}"
 tcl_nodots=`${e} "$tcl" | ${TR} -d '.'`
-tcl_tmver=`${e} "$tcl" | ${TR} '.' '_'`
 
 srcdir=`expr $0 : '\(.*\)/.*$'`
 : ${srcdir:=.}
@@ -71,7 +71,6 @@ JIM_LIB=jim
 TCL_CONF_DIR='${prefix}/lib/tcl/tcl${tcl}'
 
 TCLLIBPATH='.'
-TCLTMPATHVAR=TCL${tcl_tmver}_TM_PATH
 JIMLIB='.'
 
 DEBUG=no
@@ -81,6 +80,7 @@ DOC=''
 DOCBLD=dtplite
 BIN=''
 BINSRC=''
+TESTENV=''
 
 EXT_DEFS=''
 EXT_INC_SPEC=''
@@ -88,6 +88,8 @@ EXT_LIB_SPEC=''
 EXT_DEP_FILES=''
 EXT_VPATH=''
 EXT_CONF=''
+
+INSTALL_EXA=''
 
 VPATH='${srcdir}/generic:${srcdir}/unix:${srcdir}/library:${srcdir}/doc:${srcdir}/bin'
 
@@ -112,6 +114,10 @@ ext_conf_file=''
 if test X"$EXT_CONF" != X""; then
   ext_conf_file=$srcdir/$EXT_CONF
   . "$ext_conf_file"
+fi
+
+if test X"$TITLE" = X""; then
+  TITLE=$NAME
 fi
 
 if test X"$EXT_VPATH" != X""; then
@@ -171,10 +177,10 @@ if test X"$DOC" != X""; then
   docext=`expr $DOC : '..*\.\(..*\)$'`
   if test X"$docext" = X"n"; then
     DOCFMT=nroff
-  fi 
+  fi
   if test X"$docext" = X"html"; then
     DOCFMT=html
-  fi 
+  fi
 fi
 
 SCBIN=''
@@ -267,7 +273,7 @@ do
 done
 
 
-${ECHO} "Spot o' Conf $SPOTO_VER configurator for: $NAME $PKG_VER for $FOR_WHAT."
+${ECHO} "Spot o' Conf $SPOTO_VER configurator for: $TITLE $PKG_VER for $FOR_WHAT."
 
 if test X"$showhelpinfo" = X"yes"; then
   ${e} "Use `expr $0 : '.*/\(.*\)$'` --help for help"
@@ -355,8 +361,6 @@ eval TCLCONFIG="\"$TCL_CONF_DIR\""/tclConfig.sh
 eval TCLSH_PROG="\"$TCLSH_PROG\""
 
 tcl_nodots=`${e} "$tcl" | ${TR} -d '.'`
-tcl_tmver=`${e} "$tcl" | ${TR} '.' '_'`
-TCLTMPATHVAR=TCL${tcl_tmver}_TM_PATH
 if test X"$LOAD_LIB" = X"tm"; then
   if test X"$moddir_set" != X"yes"; then
     moddir='${prefix}/lib/tcl/modules/'$tcl_nodots
@@ -444,6 +448,7 @@ ${AWK} \
 -v SCBIN="$SCBIN" \
 -v SCBINSRC="$SCBINSRC" \
 -v INSTALL_BIN="$INSTALL_BIN" \
+-v INSTALL_EXA="$INSTALL_EXA" \
 -v LOAD_LIB="$LOAD_LIB" \
 -v INIT="$INIT" \
 -v CC="$CC" \
@@ -474,7 +479,6 @@ ${AWK} \
 -v LD_LIB_SPEC="$LD_LIB_SPEC" \
 -v LD_LIBRARY_PATH_VAR="$LD_LIBRARY_PATH_VAR" \
 -v TCLLIBPATH="$TCLLIBPATH" \
--v TCLTMPATHVAR="$TCLTMPATHVAR" \
 -v JIMLIB="$JIMLIB" \
 -v TCLSH_PROG="$TCLSH_PROG" \
 -v JIMSH_PROG="$JIMSH_PROG" \
@@ -486,6 +490,7 @@ ${AWK} \
 -v CFG_PKGINDEX="$CFG_PKGINDEX" \
 -v PKG_INSTALL_DIR="$PKG_INSTALL_DIR" \
 -v DOC_INSTALL_DIR="$DOC_INSTALL_DIR" \
+-v TESTENV="$TESTENV" \
 -v TESTFWK="$TESTFWK" \
 -v VPATH="$VPATH" \
 -v srcdir="$srcdir" \
@@ -513,6 +518,7 @@ ${AWK} \
 { while(sub("@SCBIN@",SCBIN)) {} }
 { while(sub("@SCBINSRC@",SCBINSRC)) {} }
 { while(sub("@INSTALL_BIN@",INSTALL_BIN)) {} }
+{ while(sub("@INSTALL_EXA@",INSTALL_EXA)) {} }
 { while(sub("@LOAD_LIB@",LOAD_LIB)) {} }
 { while(sub("@INIT@",INIT)) {} }
 { while(sub("@CC@",CC)) {} }
@@ -543,7 +549,6 @@ ${AWK} \
 { while(sub("@CC_INC_SPEC@",CC_INC_SPEC)) {} }
 { while(sub("@LD_LIBRARY_PATH_VAR@",LD_LIBRARY_PATH_VAR)) {} }
 { while(sub("@TCLLIBPATH@",TCLLIBPATH)) {} }
-{ while(sub("@TCLTMPATHVAR@",TCLTMPATHVAR)) {} }
 { while(sub("@JIMLIB@",JIMLIB)) {} }
 { while(sub("@TCLSH_PROG@",TCLSH_PROG)) {} }
 { while(sub("@JIMSH_PROG@",JIMSH_PROG)) {} }
@@ -555,6 +560,7 @@ ${AWK} \
 { while(sub("@CFG_PKGINDEX@",CFG_PKGINDEX)) {} }
 { while(sub("@PKG_INSTALL_DIR@",PKG_INSTALL_DIR)) {} }
 { while(sub("@DOC_INSTALL_DIR@",DOC_INSTALL_DIR)) {} }
+{ while(sub("@TESTENV@",TESTENV)) {} }
 { while(sub("@TESTFWK@",TESTFWK)) {} }
 { while(sub("@VPATH@",VPATH)) {} }
 { while(sub("@srcdir@",srcdir)) {} }
