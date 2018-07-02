@@ -2,13 +2,15 @@ what:	Spot o' Conf
 where:  https://chiselapp.com/user/stwo/repository/spotoconf
 who:	Stuart Cassoff <stwo@users.sourceforge.net>
 why:	Tcl/Jim extension architecture.
-when:	Spring 2018
-need:	Tcl 8.6
 
 
-Spot o' Conf:
-  Is a configure and build system for Tcl and Jim extensions.
-  Was inspired by TEA.
-  Can build binary or script-only extensions for Tcl or Jim.
-  Can build build/install documentation and examples.
-  Can run tests and make distribution files.
+Spot o' Conf is a TEA-inspired configure and build system
+for Tcl and Jim extensions.
+
+Features:
+  *  Build binary or script-only extensions for Tcl or Jim.
+  *  Build build/install documentation and examples.
+  *  Run tests and make distribution files.
+  *  Supports pkg-config.
+  *  Extensible.
+  *  Simple and fast.  
