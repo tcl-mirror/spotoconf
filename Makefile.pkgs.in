@@ -1,0 +1,115 @@
+
+P = _b
+
+pkgs: pkgs-build
+
+pkgs-reconfigure:
+	@for p in $(PKGS); do \
+	    (cd $${p}${P} && make reconfigure); \
+	done
+
+pkgs-configure:
+	@for p in $(PKGS); do \
+	    if test -d $${p}${P}; then \
+		(cd $${p}${P} && make configure); \
+	    else \
+		$(INSTALL_DATA_DIR) $${p}${P}; \
+		(cd $${p}${P} && ../${srcdir}/${NAME}/$$p/configure ${SPOTO_ARGS}); \
+	    fi; \
+	done
+
+pkgs-build: pkgs-configure
+	@for p in $(PKGS); do \
+	    (cd $${p}${P} && make); \
+	done
+
+pkgs-clean:
+	@for p in $(PKGS); do \
+	    if ! test -f $${p}${P}/Makefile; then continue; fi; \
+	    (cd $${p}${P} && make clean); \
+	done
+
+pkgs-distclean:
+	@for p in $(PKGS); do \
+	    if test -f $${p}${P}/Makefile; then \
+		(cd $${p}${P} && make distclean); \
+	    fi; \
+	    if ! test -d $${p}${P}; then continue; fi; \
+	    rmdir $${p}${P}; \
+	done
+
+pkgs-test: all
+	@for p in $(PKGS); do \
+	    (cd $${p}${P} && make test); \
+	done
+
+pkgs-shell: all
+	@ \
+	TCLLIBPATH="$(TCLLIBPATH)"; \
+	TCL8_6_TM_PATH="$(TCL8_6_TM_PATH)"; \
+	for p in $(PKGS); do \
+	    TCLLIBPATH="$$TCLLIBPATH $${p}${P}"; \
+	    TCL8_6_TM_PATH="$$TCL8_6_TM_PATH:$${p}${P}"; \
+	done; \
+	TCLLIBPATH="$$TCLLIBPATH" TCL8_6_TM_PATH="$$TCL8_6_TM_PATH" ${TCLSH_PROG} $(SCRIPT)
+
+pkgs-install: all
+	@ \
+	if ! expr X"$(DESTDIR)" : ^X'/..*' > /dev/null; then \
+	    $(E) 'DESTDIR must be an absolute path'; \
+	    exit 1; \
+	fi; \
+	for p in $(PKGS); do \
+	    (cd $${p}${P} && make install DESTDIR="$(DESTDIR)"); \
+	done
+
+pkgs-dist: pkgs-configure dist-spot
+	$(INSTALL_DATA_DIR) $(DIST_DIR)/examples
+	DIR=examples; \
+	list='itimer.tcl'; \
+	for p in $$list; do \
+	    $(DIST_INSTALL_SCRIPT) ${srcdir}/$$DIR/$${p}${P} $(DIST_DIR)/$$DIR/; \
+	done
+	$(INSTALL_DATA_DIR) $(DIST_DIR)/pkgs
+	pkgs='' && \
+	for p in $(PKGS); do \
+	    if expr $$p : '^tclpkgs_..*-.*$$' > /dev/null; then \
+		pkg=$$p; \
+	    else \
+		pkg=tclpkgs_$$p-$$(cd $$p && ../${srcdir}/pkgs/$$p/configure --result | sed -n -E -e 's/VERSION .*{(..*)}$$/\1/p'); \
+	    fi; \
+	    pkgs="$$pkgs $$pkg"; \
+	    (cd $${p}${P} && make dist) \
+	    && tar xzf $(DIST_ROOT)/$$pkg.tar.gz -C $(DIST_DIR)/pkgs; \
+	done \
+	&& sed -E -e 's/^(PKGS =)..*$$/\1'"$$pkgs"'/' \
+		 < ${srcdir}/Makefile.pkgs.in > Makefile.pkgs.in.dist \
+	&& $(DIST_INSTALL_DATA) Makefile.pkgs.in.dist $(DIST_DIR)/Makefile.pkgs.in \
+	&& rm -f Makefile.pkgs.in.dist
+
+pkgs-id:
+	@for p in $(PKGS); do \
+	    if ! test -f $${p}${P}/Makefile; then continue; fi; \
+	    (cd $${p}${P} && make id); \
+	done
+
+pkgs-result:
+	@for p in $(PKGS); do \
+	    if ! test -f $${p}${P}/Makefile; then continue; fi; \
+	    (cd $${p}${P} && make result); \
+	done
+
+pkgs-thatch:
+	@for p in $(PKGS); do \
+	    if ! test -f $${p}${P}/Makefile; then continue; fi; \
+	    (cd $${p}${P} && make thatch); \
+	done
+
+pkgs-dirs:
+	@for p in $(PKGS); do \
+	    ${e} $${p}${P}; \
+	done
+
+.PHONY: pkgs pkgs-reconfigure pkgs-configure pkgs-build pkgs-clean pkgs-distclean
+.PHONY: pkgs-test pkgs-shell pkgs-install pkgs-dist
+.PHONY: pkgs-id pkgs-result pkgs-thatch pkgs-dirs

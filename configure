@@ -16,21 +16,128 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-SPOTO_VER=0.7
+SPOTO_VER=0.8
 
 SH=/bin/sh
 e='printf %s\n'
+de='printf .%s\n'; de=:
 ECHO=${e}
 TR=tr
 SED=sed
 
-NAME=spot
-TITLE='Tcl or Jim extension'
-PKG_NAME=spot
-PKG_VER=0.0
+read SUBST_VARS <<EndSubstVars
+FOR_WHAT TITLE NAME VERSION NAMESPACE PKG_NAME DESCR CATEGORIES HOMEPAGE LICENSE \
+LIB DOC EXA SHLIB SCLIB SCLIBSRC DOCSRC DOCBLD DOCFMT \
+SCBIN SCBINSRC PKGINDEX CFG_PKGINDEX \
+LOAD_LIB INIT LIBDIR INSTALL_LIB INSTALL_DOC INSTALL_EXA INSTALL_BIN PKG_INSTALL_DIR DOC_INSTALL_DIR \
+CC CFLAGS_CC CFLAGS_WARN CFLAGS_OPT CFLAGS_DEBUG CFLAGS_SH CFLAGS_TH \
+DEFS_TH DEFS_OPT DEFS_SPOT DEFS_TCL DEFS_JIM DEFS \
+LDFLAGS LDFLAGS_SH LIBS_TH \
+EXT_BUILD EXT_DEFS EXT_INC_SPEC EXT_LIB_SPEC EXT_DEP_FILES \
+TCL_INC_SPEC TCL_LIB_SPEC TCL_STUB_LIB_SPEC JIM_INC_SPEC JIM_LIB_SPEC CC_INC_SPEC LD_LIB_SPEC \
+LD_LIBRARY_PATH_VAR TCLLIBPATH TCL8_5_TM_PATH TCL8_6_TM_PATH JIMLIB \
+TCLSH_PROG JIMSH_PROG BJE SH \
+SHELL CLEAN DISTCLEAN DIST TEST TESTENV TESTFWK VPATH \
+DO_DOC DO_SCBIN DO_SCLIB PKGS \
+cwd asrcdir srcdir appdir prefix pkgdir moddir mandir docdir exadir bindir SPOTO_ARGS
+EndSubstVars
+
+read OP_SUBST_VARS <<EndOpSubstVars
+OP_MAINTAINER OP_LICENSE_OK OP_WANTLIB OP_MODULES OP_MODTCL_VERSION \
+OP_BUILD_DEPENDS OP_RUN_DEPENDS OP_CONFIGURE_ARGS
+EndOpSubstVars
+
+get_moddir() {
+  eval tclsh_prog="\"$TCLSH_PROG\""
+  moddirs=`${e} 'puts [::tcl::tm::path list]' | $tclsh_prog`
+  newmoddir=''
+  tcl_dots_re=`${e} $tcl | ${SED} -e 's/\./[.]/g'`
+  for i in $moddirs ; do
+    if expr $i : '..*'$tcl_nodots'$'  > /dev/null; then newmoddir=$i; break; fi
+    if expr $i : '..*'$tcl_dots_re'$' > /dev/null; then newmoddir=$i; break; fi
+  done
+}
+
+get_bits() {
+  libdirs=''
+  namespace=''
+  name=''
+  ver=''
+  ext=''
+  title=$1
+						${de} title:"$title"
+  descr=`expr "$title" : '^..*^\(..*\)$'`
+						${de} descr:"$descr"
+  if test X"$descr" != X""; then
+    title=`expr "$title" : '^\(..*\)^..*$'`
+  fi
+  z=$title  
+  title=`expr "$title" : '^\(..*\)-..*$'`
+
+						${de} descr:"$descr"
+						${de} title:"$title"
+						${de} ver:"$ver"
+						${de} ext:"$ext"
+  ver=`expr "$z" : "^$title"'-\(..*\)\...*$'`
+  ext=`expr "$z" : "^${title}-${ver}"'\.\(..*\)$'`
+						${de} descr:"$descr"
+						${de} title:"$title"
+						${de} ver:"$ver"
+						${de} ext:"$ext"
+
+  if test X"$title" = X"" || test X"$ver" = X"" || test X"$ext" = X""; then return 1; fi
+  namespace=`tolower "$title"`
+  name=`expr "$title" : '^..*::\(..*\)$'`
+  name=`tolower $name`
+  nsp=`expr "$namespace" : '^\(..*\)::..*$'`
+  q='';oifs=$IFS;IFS=':';for j in $nsp;do for i in $j;do q="$q $i";done;done;IFS=$oifs;q=`expr "$q" : '^ \(..*\)$'`
+  for i in $q; do
+    libdirs="${libdirs}${i}/"
+  done
+  namespace="::$namespace"
+						${de} fname:^"$name"^
+						${de} ftitle:^"$title"^
+						${de} fver:^"$ver"^
+						${de} fext:^"$ext"^
+						${de} fnamespace:^"$namespace"^
+						${de} flibdirs:^"$libdirs"^
+}
+
+showres() {
+  SVARS="$SUBST_VARS"
+  if test -f Makefile.obsdport; then SVARS="$SVARS $OP_SUBST_VARS"; fi
+  for i in $SVARS; do
+    printf '%-20s {@%s@}\n' $i $i
+  done | ${SED} -f spoto.sed
+}
+
+tolower() { printf %s "`${e} "$1" | ${TR} '[:upper:]' '[:lower:]'`"; }
+
+if test X"$1" = X"--result"; then showres; exit; fi
+
+#NAME=spot
+#VERSION=0.0
+#NAMESPACE=::good::dog
+#PKG_NAME=spot
+#TITLE='Tcl or Jim extension'
+#DESCR='A really good program!'
+
+NAME=''
+VERSION=''
+NAMESPACE=''
+PKG_NAME=''
+TITLE=''
+
+DESCR=''
+CATEGORIES=''
+HOMEPAGE=''
+LICENSE=''
 
 LIB=''
 INIT=''
+SCLIBSRC=''
+
+PKGS=''
 
 #FOR_WHAT=Tcl
 #FOR_WHAT=Jim
@@ -62,6 +169,7 @@ exadir=''
 pkgdir=''
 moddir=''
 moddir_set=no
+moddir_setinconf=no
 
 TCLSH_PROG='tclsh${tcl}'
 WISH_PROG='wish${tcl}'
@@ -76,6 +184,8 @@ TCL_CONF_DIR='${prefix}/lib/tcl/tcl${tcl}'
 PKGCONFIG=no
 
 TCLLIBPATH='.'
+TCL8_5_TM_PATH='.'
+TCL8_6_TM_PATH='.'
 JIMLIB='.'
 
 DEBUG=no
@@ -83,14 +193,17 @@ THREADS=''
 PKGINDEX=''
 DOC=''
 DOCBLD=dtplite
+EXA=''
 BIN=''
 BINSRC=''
 TESTENV=''
+
 TEST='test-spot'
 SHELL='shell-spot'
 CLEAN='clean-spot'
 DISTCLEAN='distclean-spot'
 DIST='dist-ext'
+PKGS_CFGNOW='yes'
 
 EXT_BUILD=''
 EXT_DEFS=''
@@ -103,11 +216,22 @@ EXT_MK=''
 
 INSTALL_EXA=''
 
+DO=''
+DO_SCLIB=''
+DO_DOC=''
+DO_SCBIN=''
+
+OP_MAINTAINER=''
+OP_CATEGORIES=''
+OP_WANTLIB=''
+OP_MODULES=''
+OP_MODTCL_VERSION=''
+OP_BUILD_DEPENDS=''
+OP_RUN_DEPENDS=''
+
 BLDSRC_FATAL=yes
 
 VPATH='${srcdir}/generic:${srcdir}/unix:${srcdir}/library:${srcdir}/doc:${srcdir}/bin'
-
-SUBST_VARS='NAME TITLE PKG_NAME PKG_VER LIB SHLIB SCLIB SCLIBSRC DOC DOCSRC DOCBLD DOCFMT INSTALL_DOC SCBIN SCBINSRC INSTALL_BIN INSTALL_EXA INSTALL_LIB LOAD_LIB INIT CC CFLAGS_CC CFLAGS_WARN CFLAGS_OPT CFLAGS_SH CFLAGS_TH LIBS_TH TH_DEFS OPT_DEFS LDFLAGS LDFLAGS_SH TDEFS JDEFS DEFS SPOTO_DEFS EXT_BUILD EXT_DEFS EXT_INC_SPEC EXT_LIB_SPEC EXT_DEP_FILES TCL_INC_SPEC JIM_INC_SPEC TCL_LIB_SPEC JIM_LIB_SPEC TCL_STUB_LIB_SPEC CC_INC_SPEC LD_LIB_SPEC LD_LIBRARY_PATH_VAR TCLLIBPATH JIMLIB TCLSH_PROG JIMSH_PROG BJE SH CFLAGS_DEBUG FOR_WHAT PKGINDEX CFG_PKGINDEX PKG_INSTALL_DIR DOC_INSTALL_DIR SHELL CLEAN DISTCLEAN DIST TEST TESTENV TESTFWK VPATH srcdir asrcdir cwd prefix appdir pkgdir moddir mandir docdir exadir bindir SPOTO_ARGS'
 
 if test X"$1" != X"" && ! expr X"$1" : X'--..*$' > /dev/null; then
   spoto_conf_file=$1
@@ -116,16 +240,81 @@ else
   spoto_conf_file=$srcdir/spoto.conf
 fi
 
+SPOTO_ARGS="$@"
+
 . "$spoto_conf_file"
 
-ext_conf_file=''
-if test X"$EXT_CONF" != X""; then
-  ext_conf_file=$srcdir/$EXT_CONF
+ext_conf_files=''
+set -- $EXT_CONF
+while test $# -ne 0; do
+  ext_conf_file=$srcdir/$1
+  shift
+  ext_conf_files="$ext_conf_files $ext_conf_file"
+  EXT_CONF=''
   . "$ext_conf_file"
+  if test X"$EXT_CONF" != X""; then
+    ext_conf="$EXT_CONF $*"
+    set -- $ext_conf
+  fi
+done
+
+LIBDIR=''
+if get_bits "$LIB"; then
+  LIBDIR=$libdirs
+  LIB=''
+else
+  if get_bits "$BIN"; then
+    BIN=${name}.${ext}
+    ext=''
+  else
+    if ! get_bits "$TITLE"; then
+      title=$TITLE
+      name=$NAME
+    fi
+  fi
+fi
+
+if test X"$name" = X""; then
+  name=`tolower "$title"`
+fi
+if test X"$title" = X""; then
+  title=$name
+fi
+
+if test X"$name" = X""; then
+  ${e} "Must arrive at a NAME by some method!"
+  exit 1
+fi
+
+if test X"$NAME" = X""; then
+  NAME=$name
+fi
+
+if test X"$PKG_NAME" = X""; then
+  PKG_NAME=$NAME
+fi
+
+if test X"$VERSION" = X""; then
+  VERSION=$ver
+fi
+
+if test X"$NAMESPACE" = X""; then
+  NAMESPACE=$namespace
+fi
+
+if test X"$LIB" = X"" && test X"$ext" != X""; then
+  if test X"$ext" = X"so"; then
+    LIB=lib
+  fi
+  LIB="$LIB${NAME}.${ext}"
 fi
 
 if test X"$TITLE" = X""; then
-  TITLE=$NAME
+  TITLE=$title
+fi
+
+if test X"$DESCR" = X""; then
+  DESCR=$descr
 fi
 
 if test X"$EXT_VPATH" != X""; then
@@ -150,12 +339,12 @@ fi
 
 SHLIB=''
 SCLIB=''
-SCLIBSRC=''
+sclibsrc=''
 LOAD_LIB=''
 INSTALL_LIB=''
 if expr "$LIB" : '..*[.]tcl$' > /dev/null; then
   SCLIB="$LIB"
-  SCLIBSRC="$LIB"
+  sclibsrc="$LIB"
   LOAD_LIB='source'
   INSTALL_LIB='install-script-lib'
 fi
@@ -166,13 +355,16 @@ if test X"$LOAD_LIB" = X""; then
       SCLIB=$LIBNAME.tcl
       LOAD_LIB='source'
     else
-      SCLIB=$LIBNAME-$PKG_VER.tm
+      SCLIB=$LIBNAME-$VERSION.tm
       LOAD_LIB='tm'
     fi
-    SCLIBSRC=$LIBNAME.tcl
+    sclibsrc=$LIBNAME.tcl
     INSTALL_LIB='install-script-lib'
     LIB="$SCLIB"
   fi
+fi
+if test X"$SCLIBSRC" = X""; then
+  SCLIBSRC=$sclibsrc
 fi
 if test X"$LOAD_LIB" = X"" && test X"$LIB" != X""; then
   SHLIB="$LIB"
@@ -205,7 +397,7 @@ if expr X"$BINSRC" : X'..*[.]tcl$' > /dev/null; then
 fi
 
 if test X"$appdir" = X""; then
-  appdir=`${e} "$NAME" | ${TR} '[:upper:]' '[:lower:]'`
+  appdir=`tolower "$NAME"`
 fi
 
 if test X"$pkgdir" = X""; then
@@ -213,10 +405,24 @@ if test X"$pkgdir" = X""; then
     pkgdir='${prefix}/lib/jim'
   else
     pkgdir='${prefix}/lib/tcl/${appdir}'
-    if test X"$LOAD_LIB" = X"tm"; then
-      moddir='${prefix}/lib/tcl/modules/${tcl_nodots}'
+  fi
+fi
+
+if test X"$FOR_WHAT" != X"Jim"; then
+  if test X"$LOAD_LIB" = X"tm"; then
+    if test X"$moddir" = X""; then
+      moddir='${prefix}/lib/tcl/modules/$tcl_nodots'
+    else
+      moddir_setinconf=yes
     fi
   fi
+fi
+if test X"$moddir" = X"guess"; then
+  get_moddir
+  moddir=$newmoddir
+  moddir_guess='guess: '
+else
+  moddir_guess=''
 fi
 
 if test X"$docdir" = X""; then
@@ -239,12 +445,27 @@ else
   j=:
 fi
 
+if test -f ${srcdir}/Makefile.obsdport.in ; then o=${e} ; else o=: ; fi
+if test X"$DESCR"    = X"" ; then d=: ; else d=${e} ; fi
+if test X"$HOMEPAGE" = X"" ; then h=: ; else h=${e} ; fi
+if test X"$LICENSE"  = X"" ; then l=: ; else l=${e} ; fi
+if test X"$PKGS"     = X"" ; then p=: ; else p=${e} ; fi
+
 showhelpinfo=''
 showhelp=''
 showres=''
+showid=''
+showinfo=''
+showdescr=''
+showhome=''
+showlicense=''
+showpkgs=''
+showpkgsid=''
+showpkgsinfo=''
+portdir='no'
 huh=''
 
-for arg
+for arg in $SPOTO_ARGS
 do
   name=`expr "$arg" : '\(.*\)=.*$'`
   if test X"$name" != X""; then
@@ -264,8 +485,8 @@ do
     --docdir	) docdir=$value		;;
     --exadir	) exadir=$value		;;
     --tcl	) tcl=$value		;;
-    --with-tcl	) TCL_CONF_DIR=$value	;;
     --pkgconfig	) PKGCONFIG=$value	;;
+    --with-tcl	) TCL_CONF_DIR=$value	;;
     --jimincdir	) JIM_INC_DIR=$value	;;
     --jimlibdir	) JIM_LIB_DIR=$value	;;
     --jimlib	) JIM_LIB_DIR=$value	;;
@@ -276,22 +497,64 @@ do
     --docbld    ) DOCBLD=$value		;;
     --docfmt    ) DOCFMT=$value		;;
     --debug	) DEBUG=$value		;;
-    --threads	) THREADS=$value	;;
-    --quiet	) ECHO=:		;;
+    --id	) showid=yes		;;
+    --info	) showinfo=yes		;;
+    --descr	) showdescr=yes		;;
+    --home	) showhome=yes		;;
+    --license	) showlicense=yes	;;
+    --pkgs	) showpkgs=yes		;;
+    --pkgs-id	) showpkgsid=yes	;;
+    --pkgs-info	) showpkgsinfo=yes	;;
+    --pkgs-cfgnow ) PKGS_CFGNOW=$value	;;
+    --obsdport	) portdir=$value	;;
     --result	) showres=yes		;;
+    --quiet	) ECHO=:		;;
     -\?|--help	) showhelp=yes		;;
     *		) huh="$huh $arg";showres='';break ;;
   esac
 done
 
-if test X"$showres" = X"yes"; then
-   for i in $SUBST_VARS; do
-     printf '%-20s {@%s@}\n' $i $i
-   done | ${SED} -f spoto.sed | sort
+if test X"$moddir_set" = X"yes"; then
+  moddir_guess=''
+fi
+
+if test X"$showres" = X"yes"; then showres; exit; fi
+
+if test X"$portdir" != X"no" && test X"$portdir" != X""; then
+  if ! expr X"$portdir" : ^X'/..*' > /dev/null; then
+    ${e} 'port dir must be an absolute path'
+    exit 1
+  fi
+  if ! expr "$portdir" : '^..*/$' > /dev/null; then
+    portdir="$portdir/"
+  fi
+fi
+
+pkg_info="$TITLE $VERSION for $FOR_WHAT"
+pkg_blurb=$pkg_info
+if test X"$DESCR" != X""; then
+  pkg_blurb="$pkg_blurb. ($DESCR)"
+fi
+
+if test X"$showid"      = X"yes"; then ${e} "$NAME $VERSION"; fi
+if test X"$showinfo"    = X"yes"; then ${e} "$pkg_info";      fi
+if test X"$showdescr"   = X"yes"; then ${e} "$DESCR";         fi
+if test X"$showhome"    = X"yes"; then ${e} "$HOMEPAGE";      fi
+if test X"$showlicense" = X"yes"; then ${e} "$LICENSE";       fi
+if test X"$showpkgs"    = X"yes"; then ${e} "$PKGS";          fi
+
+if test X"$showpkgsid" = X"yes"; then
+  for i in $PKGS; do (cd $srcdir/$NAME/$i && ./configure --id); done
+fi
+if test X"$showpkgsinfo" = X"yes"; then
+  for i in $PKGS; do (cd $srcdir/$NAME/$i && ./configure --info); done
+fi
+
+if test X"${showid}${showinfo}${showdescr}${showhome}${showlicense}${showpkgs}${showpkgsid}${showpkgsinfo}" != X"" ; then
   exit
 fi
 
-${ECHO} "Spot o' Conf $SPOTO_VER configurator for: $TITLE $PKG_VER for $FOR_WHAT."
+${ECHO} "Spot o' Conf $SPOTO_VER configurator for: $pkg_blurb"
 
 if test X"$huh" != X""; then
   ${ECHO} "Huh? $huh"
@@ -312,7 +575,7 @@ if test X"$showhelp" = X"yes"; then
   ${e} "  --bindir       dir    Executable files dir [${bindir}]"
   ${e} "  --libdir       dir    Library files dir [${libdir}]"
   ${e} "  --pkgdir       dir    Package files dir [${pkgdir}]"
-  ${t} "  --moddir       dir    Module files dir [${moddir}]"
+  ${t} "  --moddir       dir    Module files dir [${moddir_guess}${moddir}]"
   ${e} "  --mandir       dir    Man files dir [${mandir}]"
   ${e} "  --docdir       dir    Documentation files dir [${docdir}]"
   ${e} "  --exadir       dir    Example files dir [${exadir}]"
@@ -328,19 +591,39 @@ if test X"$showhelp" = X"yes"; then
   ${e} "  --docbld       file   Documentation builder [${DOCBLD}]"
   ${e} "  --docfmt       fmt    Documentation format [${DOCFMT}]"
   ${e} "  --debug        bool   Enable symbols and checks [${DEBUG}]"
-  ${t} "  --threads      bool   Enable threads [${THREADS}]"
-  ${e} '  --quiet        bool   Do not display configure messages'
+  ${e} '  --id                  Print name and version'
+  ${e} '  --info                Print name, version and FOR_WHAT'
+  ${d} '  --descr               Print a one-line description'
+  ${h} '  --home                Print the home page of the package'
+  ${l} '  --license             Print the license of the package'
+  ${p} '  --pkgs                Print package names on one line'
+  ${p} '  --pkgs-id             Print package names and versions'
+  ${p} '  --pkgs-info           Print package names, versions and FOR_WHATs'
+  ${p} "  --pkgs-cfgnow  bool   Configure packages now [${PKGS_CFGNOW}]"
+  ${o} "  --obsdport     dir    Create an OpenBSD port in dir [${portdir}]"
   ${e} '  --result              Print the result of a configuration'
+  ${e} '  --quiet               Do not display configure messages'
   ${e} '  --help, -?            This information'
   exit
 fi
 
-if test -f Makefile.in; then
+if test -f spoto.conf; then
   ${e} "Don't build in the toplevel source directory!"
   if test X"$BLDSRC_FATAL" != X"no"; then exit 1; fi
 fi
 
-${ECHO} "Using config: $spoto_conf_file $ext_conf_file"
+if test -f ../spoto.conf; then
+  for p in $PKGS; do
+    if ! test -f $p/spoto.conf; then continue; fi
+    ${e} "Don't build in the pkgs toplevel source directory!"
+    if test X"$BLDSRC_FATAL" != X"no"; then exit 1; fi
+    break
+  done
+fi
+
+${ECHO} "Using config: $spoto_conf_file$ext_conf_files"
+
+if test X"$portdir" = X"no"; then portdir=''; fi
 
 if test X"$DEBUG" = X"yes"; then
   CFLAGS_DEBUG='-g'
@@ -351,10 +634,10 @@ fi
 LIBS_TH=''
 if test X"$THREADS" = X"yes"; then
   CFLAGS_TH='-pthread'
-  TH_DEFS='-DTCL_THREADS=1 -DUSE_THREAD_ALLOC=1'
+  DEFS_TH='-DTCL_THREADS=1 -DUSE_THREAD_ALLOC=1'
 else
   CFLAGS_TH=''
-  TH_DEFS=''
+  DEFS_TH=''
 fi
 
 if test X"$DOCFMT" != X"nroff" && test X"$DOCFMT" != X"html"; then
@@ -393,23 +676,30 @@ fi
 eval TCLSH_PROG="\"$TCLSH_PROG\""
 
 tcl_nodots=`${e} "$tcl" | ${TR} -d '.'`
+
 if test X"$LOAD_LIB" = X"tm"; then
   if test X"$moddir_set" != X"yes"; then
-    moddir='${prefix}/lib/tcl/modules/'$tcl_nodots
+    if test X"$moddir_setinconf" != X"yes"; then
+      moddir='${prefix}/lib/tcl/modules/'$tcl_nodots
+    fi
   fi
+fi
+if test X"$moddir" = X"guess"; then
+  get_moddir
+  moddir=$newmoddir
 fi
 
 if test $FOR_WHAT = Jim; then
   PKGINDEX=''
-  DEFS='${JDEFS}'
-  SPOTO_DEFS='-DFOR_JIM=1'
+  DEFS='${DEFS_JIM}'
+  DEFS_SPOT='-DFOR_JIM=1'
   CC_INC_SPEC='${JIM_INC_SPEC}'
   LD_LIB_SPEC='${JIM_LIB_SPEC}'
   PKG_INSTALL_DIR='${pkgdir}'
   TESTFWK='testing.tcl'
 else
-  DEFS='${TDEFS}'
-  SPOTO_DEFS='-DFOR_TCL=1'
+  DEFS='${DEFS_TCL}'
+  DEFS_SPOT='-DFOR_TCL=1'
   CC_INC_SPEC='${TCL_INC_SPEC}'
   #LD_LIB_SPEC='${TCL_LIB_SPEC}'
   LD_LIB_SPEC='${TCL_STUB_LIB_SPEC}'
@@ -421,17 +711,36 @@ else
   TESTFWK='all.tcl'
 fi
 
-OPT_DEFS='-DPACKAGE_NAME=\\"'"$PKG_NAME"'\\" -DPACKAGE_VERSION=\\"'"$PKG_VER"'\\"'
+if false;then
+if test X"$LOAD_LIB" = X"tm"; then
+  LOAD_LIB=source
+fi
+fi
+
+if test X"$DO" = X""; then
+  DO='ln -s ${cwd}/$> $^ $@'
+fi
+if test X"$DO_SCLIB" = X""; then
+  DO_SCLIB="$DO"
+fi
+if test X"$DO_DOC" = X""; then
+  DO_DOC="$DO"
+fi
+if test X"$DO_SCBIN" = X""; then
+  DO_SCBIN="$DO"
+fi
+
+DEFS_OPT='-DPACKAGE_NAME=\\"'"$PKG_NAME"'\\" -DPACKAGE_VERSION=\\"'"$VERSION"'\\"'
 
 CC=${CC:=cc}
 CFLAGS_CC='-pipe'
-CFLAGS_WARN='-Wall'
+CFLAGS_WARN=${CFLAGS_WARN:='-Wall -Wextra'}
 CFLAGS_OPT='-O2'
 CFLAGS_SH='-fpic'
 LDFLAGS=''
 LDFLAGS_SH='-shared'
-TDEFS='-DUSE_TCL_STUBS=1'
-JDEFS=''
+DEFS_TCL='-DUSE_TCL_STUBS=1'
+DEFS_JIM=''
 
 LD_LIBRARY_PATH_VAR=LD_LIBRARY_PATH
 
@@ -444,12 +753,14 @@ eval JIM_LIB_SPEC="-L\"$JIM_LIB_DIR\"' '-l\"$JIM_LIB\""
 
 if test $FOR_WHAT = Tcl; then
   if test X"$TCLCONFIG" != X""; then
+    ${ECHO} "Using tclConfig.sh: $TCLCONFIG"
     . "$TCLCONFIG"
   else
     if test X"$PKGCONFIG" != X"no"; then
       if test X"$PKGCONFIG" = X"yes"; then
-          PKGCONFIG=tcl${tcl_nodots}
+          PKGCONFIG=tcl$tcl_nodots
       fi
+       ${ECHO} "Using pkg-config: $PKGCONFIG"
       TCL_INCLUDE_SPEC=`pkg-config --cflags $PKGCONFIG` || exit 1
       TCL_LIB_SPEC=`pkg-config     --libs   $PKGCONFIG` || exit 1
     fi
@@ -465,7 +776,13 @@ else
     fi
 fi
 
-SPOTO_ARGS="$@"
+if test X"$DESCR" = X""; then
+  DESCR='sorftware'
+fi
+if test X"$CATEGORIES" = X""; then
+  CATEGORIES='misc'
+fi
+
 
 sfiles='Makefile.in'
 if test X"$PKGINDEX" = X"pkgIndex.tcl.in"; then
@@ -476,27 +793,103 @@ else
   CFG_PKGINDEX=''
 fi
 
-rm -f spoto.sed
+if test X"$PKGS" != X""; then
+  EXT_MK="Makefile.pkgs.in $EXT_MK"
+  CLEAN="pkgs-clean $CLEAN"
+  DISTCLEAN="pkgs-distclean $DISTCLEAN"
+  TEST="pkgs-test $TEST"
+  SHELL=pkgs-shell
+  DIST=pkgs-dist
+  INSTALL_EXA=pkgs-install
+  EXT_BUILD=pkgs
+fi
+
+if test X"$portdir" != X""; then
+  if test X"$LICENSE" = X""; then
+    LICENSE='???'
+  fi
+  SUBST_VARS="$SUBST_VARS $OP_SUBST_VARS"
+  case $LICENSE in
+    ISC* ) OP_LICENSE_OK=Yes   ;;
+    BSD* ) OP_LICENSE_OK=Yes   ;;
+    MIT* ) OP_LICENSE_OK=Yes   ;;
+     PD* ) OP_LICENSE_OK=Maybe ;;
+    GPL* ) OP_LICENSE_OK=Maybe ;;
+       * ) OP_LICENSE_OK=No    ;;
+  esac
+  if test X"$FOR_WHAT" = X"Jim"; then
+    OP_WANTLIB=jim
+    OP_BUILD_DEPENDS=lang/jimtcl
+    OP_RUN_DEPENDS=lang/jimtcl
+  else
+    OP_MODULES=lang/tcl
+    OP_MODTCL_VERSION="${TCL}"
+    OP_BUILD_DEPENDS='${MODTCL_BUILD_DEPENDS}'
+    OP_RUN_DEPENDS='${MODTCL_RUN_DEPENDS}'
+    OP_CONFIGURE_ARGS="--tcl=${TCL}"
+  fi
+  if test X"$OP_MAINTAINER" = X""; then
+    OP_MAINTAINER=`whoami`@`hostname`
+  fi
+  EXT_MK=''
+  sfiles=Makefile.obsdport.in
+  CATEGORIES='graphics x11 devel'
+  for i in $CATEGORIES; do category=$i; break; done
+  portdir=${portdir}${category}/${PKG_NAME}/
+  ${ECHO} "Creating OpenBSD port in $portdir"
+  mkdir -p $portdir
+fi
+
+if test X"${ECHO}" = X":"; then ECHOSN=:; else ECHOSN='printf %s\040'; fi
+
+${ECHOSN} "Generating: ${portdir}spoto.sed"
+
+rm -f ${portdir}spoto.sed
 
 if test X"$EXT_MK" != X"" ; then
   for i in $EXT_MK; do
     printf '%s\n\n%s\n' '/@EXT_MK@/a \' "/@EXT_MK@/r $srcdir/$i"
   done
-  printf '%s\n' 's,@EXT_MK@,@TITLE@,'
+  if test X"$i" = X"Makefile.pkgs.in"; then
+    printf '%s\n' 's,@EXT_MK@,@TITLE@ Packages,'
+  else
+    printf '%s\n' 's,@EXT_MK@,@TITLE@,'
+  fi
 else
   printf '%s\n' '/@EXT_MK@/,/$/d'
-fi >> spoto.sed
+fi >> ${portdir}spoto.sed
 
 for i in $SUBST_VARS; do
   eval q=`printf '$%s' "$i"`
   printf 's\001@%s@\001%s\001g\n' $i "$q"
-done >> spoto.sed
+done >> ${portdir}spoto.sed
 
 for ifile in $sfiles; do
   ofile=`expr $ifile : '\(..*\)\.in$'`
   INFILE=$srcdir/$ifile
-  OUTFILE=$ofile
-  ${SED} -f spoto.sed < "$INFILE" > "$OUTFILE"
+  OUTFILE=${portdir}${ofile}
+  ${ECHOSN} "$OUTFILE"
+  ${SED} -f ${portdir}spoto.sed < "$INFILE" > "$OUTFILE"
 done
+
+if test X"$portdir" != X""; then
+  portdir=${portdir}pkg/
+  OUTFILE=${portdir}DESCR
+  ${ECHOSN} "$OUTFILE"
+  mkdir -p $portdir
+  if test -f ${srcdir}/README; then
+    cat ${srcdir}/README > "$OUTFILE"
+  else
+    ${e} "$DESCR" > "$OUTFILE"
+  fi
+fi
+
+${ECHO} ''
+
+if test X"$PKGS" != X"" && test X"$PKGS_CFGNOW" = X"yes"; then
+  make pkgs-configure
+fi
+
+exit
 
 # EOF

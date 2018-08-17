@@ -2,5 +2,5 @@
 package prefer latest
 package require Tcl 8.6
 package require tcltest 2.4
-tcltest::configure {*}$argv -testdir [file dir [info script]]
+tcltest::configure -testdir [file dirname [info script]] -tmpdir [pwd] {*}$argv
 tcltest::runAllTests
