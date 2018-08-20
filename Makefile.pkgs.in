@@ -1,46 +1,46 @@
 
-P = _b
+B = _b
 
 pkgs: pkgs-build
 
 pkgs-reconfigure:
 	@for p in $(PKGS); do \
-	    (cd $${p}${P} && make reconfigure); \
+	    (cd $${p}$(B) && make reconfigure); \
 	done
 
 pkgs-configure:
 	@for p in $(PKGS); do \
-	    if test -d $${p}${P}; then \
-		(cd $${p}${P} && make configure); \
+	    if test -d $${p}$(B); then \
+		(cd $${p}$(B) && make configure); \
 	    else \
-		$(INSTALL_DATA_DIR) $${p}${P}; \
-		(cd $${p}${P} && ../${srcdir}/${NAME}/$$p/configure ${SPOTO_ARGS}); \
+		$(INSTALL_DATA_DIR) $${p}$(B); \
+		(cd $${p}$(B) && ../${srcdir}/${PKGS_DIR}/$$p/configure ${SPOTO_ARGS}); \
 	    fi; \
 	done
 
 pkgs-build: pkgs-configure
 	@for p in $(PKGS); do \
-	    (cd $${p}${P} && make); \
+	    (cd $${p}$(B) && make); \
 	done
 
 pkgs-clean:
 	@for p in $(PKGS); do \
-	    if ! test -f $${p}${P}/Makefile; then continue; fi; \
-	    (cd $${p}${P} && make clean); \
+	    if ! test -f $${p}$(B)/Makefile; then continue; fi; \
+	    (cd $${p}$(B) && make clean); \
 	done
 
 pkgs-distclean:
 	@for p in $(PKGS); do \
-	    if test -f $${p}${P}/Makefile; then \
-		(cd $${p}${P} && make distclean); \
+	    if test -f $${p}$(B)/Makefile; then \
+		(cd $${p}$(B) && make distclean); \
 	    fi; \
-	    if ! test -d $${p}${P}; then continue; fi; \
-	    rmdir $${p}${P}; \
+	    if ! test -d $${p}$(B); then continue; fi; \
+	    rmdir $${p}$(B); \
 	done
 
 pkgs-test: all
 	@for p in $(PKGS); do \
-	    (cd $${p}${P} && make test); \
+	    (cd $${p}$(B) && make test); \
 	done
 
 pkgs-shell: all
@@ -48,8 +48,8 @@ pkgs-shell: all
 	TCLLIBPATH="$(TCLLIBPATH)"; \
 	TCL8_6_TM_PATH="$(TCL8_6_TM_PATH)"; \
 	for p in $(PKGS); do \
-	    TCLLIBPATH="$$TCLLIBPATH $${p}${P}"; \
-	    TCL8_6_TM_PATH="$$TCL8_6_TM_PATH:$${p}${P}"; \
+	    TCLLIBPATH="$$TCLLIBPATH $${p}$(B)"; \
+	    TCL8_6_TM_PATH="$$TCL8_6_TM_PATH:$${p}$(B)"; \
 	done; \
 	TCLLIBPATH="$$TCLLIBPATH" TCL8_6_TM_PATH="$$TCL8_6_TM_PATH" ${TCLSH_PROG} $(SCRIPT)
 
@@ -60,56 +60,38 @@ pkgs-install: all
 	    exit 1; \
 	fi; \
 	for p in $(PKGS); do \
-	    (cd $${p}${P} && make install DESTDIR="$(DESTDIR)"); \
+	    (cd $${p}$(B) && make install DESTDIR="$(DESTDIR)"); \
 	done
 
 pkgs-dist: pkgs-configure dist-spot
-	$(INSTALL_DATA_DIR) $(DIST_DIR)/examples
-	DIR=examples; \
-	list='itimer.tcl'; \
-	for p in $$list; do \
-	    $(DIST_INSTALL_SCRIPT) ${srcdir}/$$DIR/$${p}${P} $(DIST_DIR)/$$DIR/; \
-	done
-	$(INSTALL_DATA_DIR) $(DIST_DIR)/pkgs
+	$(DIST_INSTALL_DATA) ${srcdir}/Makefile.pkgs.in $(DIST_DIR)/
+	$(INSTALL_DATA_DIR) $(DIST_DIR)/${NAME}
 	pkgs='' && \
 	for p in $(PKGS); do \
-	    if expr $$p : '^tclpkgs_..*-.*$$' > /dev/null; then \
+	    if expr $$p : '^..*-.*$$' > /dev/null; then \
 		pkg=$$p; \
 	    else \
-		pkg=tclpkgs_$$p-$$(cd $$p && ../${srcdir}/pkgs/$$p/configure --result | sed -n -E -e 's/VERSION .*{(..*)}$$/\1/p'); \
+		pkg=$$p-$$(cd $${p}$(B) && ../${srcdir}/${PKGS_DIR}/$$p/configure --version); \
 	    fi; \
 	    pkgs="$$pkgs $$pkg"; \
-	    (cd $${p}${P} && make dist) \
-	    && tar xzf $(DIST_ROOT)/$$pkg.tar.gz -C $(DIST_DIR)/pkgs; \
+	    (cd $${p}$(B) && make dist) \
+	    && tar xzf $(DIST_ROOT)/$$pkg.tar.gz -C $(DIST_DIR)/${PKGS_DIR} \
+	    && mv $(DIST_DIR)/${PKGS_DIR}/$$pkg $(DIST_DIR)/${PKGS_DIR}/$$p; \
 	done \
-	&& sed -E -e 's/^(PKGS =)..*$$/\1'"$$pkgs"'/' \
-		 < ${srcdir}/Makefile.pkgs.in > Makefile.pkgs.in.dist \
-	&& $(DIST_INSTALL_DATA) Makefile.pkgs.in.dist $(DIST_DIR)/Makefile.pkgs.in \
-	&& rm -f Makefile.pkgs.in.dist
-
-pkgs-id:
-	@for p in $(PKGS); do \
-	    if ! test -f $${p}${P}/Makefile; then continue; fi; \
-	    (cd $${p}${P} && make id); \
-	done
+	&& echo $$pkgs
 
 pkgs-result:
 	@for p in $(PKGS); do \
-	    if ! test -f $${p}${P}/Makefile; then continue; fi; \
-	    (cd $${p}${P} && make result); \
+	    if ! test -f $${p}$(B)/Makefile; then continue; fi; \
+	    (cd $${p}$(B) && make result); \
 	done
 
 pkgs-thatch:
 	@for p in $(PKGS); do \
-	    if ! test -f $${p}${P}/Makefile; then continue; fi; \
-	    (cd $${p}${P} && make thatch); \
-	done
-
-pkgs-dirs:
-	@for p in $(PKGS); do \
-	    ${e} $${p}${P}; \
+	    if ! test -f $${p}$(B)/Makefile; then continue; fi; \
+	    (cd $${p}$(B) && make thatch); \
 	done
 
 .PHONY: pkgs pkgs-reconfigure pkgs-configure pkgs-build pkgs-clean pkgs-distclean
 .PHONY: pkgs-test pkgs-shell pkgs-install pkgs-dist
-.PHONY: pkgs-id pkgs-result pkgs-thatch pkgs-dirs
+.PHONY: pkgs-result pkgs-thatch

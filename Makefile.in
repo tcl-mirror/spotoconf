@@ -73,6 +73,7 @@ EXT_DEP_FILES	= @EXT_DEP_FILES@
 EXT_BUILD 	= @EXT_BUILD@
 
 PKGS		= @PKGS@
+PKGS_DIR	= @PKGS_DIR@
 
 BJE		= @BJE@
 SH		= @SH@
@@ -104,7 +105,7 @@ DOC_INSTALL_DIR	= @DOC_INSTALL_DIR@
 
 INDENT		= "    "
 
-DIST_NAME	= ${NAME}-${VERSION}
+DIST_NAME	= @DIST_NAME@
 DIST_ROOT	= /tmp/dist
 DIST_DIR	= $(DIST_ROOT)/$(DIST_NAME)
 DIST_FILE	= $(DIST_NAME).tar.gz
@@ -168,9 +169,6 @@ ${SCBIN}: ${srcdir}/bin/${SCBINSRC}
 
 pkgIndex.tcl:
 	$(E) 'package ifneeded ${PKG_NAME} ${VERSION} [list @LOAD_LIB@ [file join $$dir ${LIB}] ${INIT}]' > pkgIndex.tcl
-
-id:
-	@$(E) "${NAME} ${VERSION}"
 
 result:
 	${SH} ${srcdir}/configure --result
@@ -255,7 +253,7 @@ install-lib:
 	@$(INSTALL_DATA_DIR) $(DESTDIR)${PKG_INSTALL_DIR}
 	@$(EN) $(INDENT)
 	@$(EN) "${LIB} "
-	@$(INSTALL_LIBRARY) ${LIB} $(DESTDIR)${PKG_INSTALL_DIR}
+	@$(INSTALL_LIBRARY) ${LIBDIR}${LIB} $(DESTDIR)${PKG_INSTALL_DIR}
 	@if test X"@PKGINDEX@" != X"" ; then \
 	    $(EN) "@PKGINDEX@"; \
 	    $(INSTALL_DATA) @PKGINDEX@ $(DESTDIR)${PKG_INSTALL_DIR}; \
@@ -299,7 +297,6 @@ install-exa:
 	    fi; \
 	done
 	@$(E) ''
-
 
 dist: dist-clean dist-setup @DIST@ dist-compress
 
@@ -395,14 +392,15 @@ dist-ext: dist-spot
 	    done; \
 	fi
 
+dist-check:
+	@diff -urq $(DIST_DIR) ${srcdir} || :
 
 # @EXT_MK@
 
 .PHONY: all reconfigure configure dist clean distclean @DIST@
 .PHONY: shell test install install-lib install-doc install-exa
 .PHONY: test-Tcl test-Jim no-test dist-clean dist-compress dist-spot
-.PHONY: id result thatch
-
+.PHONY: result thatch dist-check
 
 # Spot o' Conf 0.8
 

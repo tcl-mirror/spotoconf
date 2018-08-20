@@ -26,19 +26,19 @@ TR=tr
 SED=sed
 
 read SUBST_VARS <<EndSubstVars
-FOR_WHAT TITLE NAME VERSION NAMESPACE PKG_NAME DESCR CATEGORIES HOMEPAGE LICENSE \
+FOR_WHAT TITLE NAME VERSION NAMESPACE PKG_NAME DIST_NAME DESCR CATEGORIES HOMEPAGE LICENSE \
 LIB DOC EXA SHLIB SCLIB SCLIBSRC DOCSRC DOCBLD DOCFMT \
 SCBIN SCBINSRC PKGINDEX CFG_PKGINDEX \
 LOAD_LIB INIT LIBDIR INSTALL_LIB INSTALL_DOC INSTALL_EXA INSTALL_BIN PKG_INSTALL_DIR DOC_INSTALL_DIR \
 CC CFLAGS_CC CFLAGS_WARN CFLAGS_OPT CFLAGS_DEBUG CFLAGS_SH CFLAGS_TH \
 DEFS_TH DEFS_OPT DEFS_SPOT DEFS_TCL DEFS_JIM DEFS \
 LDFLAGS LDFLAGS_SH LIBS_TH \
-EXT_BUILD EXT_DEFS EXT_INC_SPEC EXT_LIB_SPEC EXT_DEP_FILES \
+EXT_CONF_FILES EXT_BUILD EXT_DEFS EXT_INC_SPEC EXT_LIB_SPEC EXT_DEP_FILES \
 TCL_INC_SPEC TCL_LIB_SPEC TCL_STUB_LIB_SPEC JIM_INC_SPEC JIM_LIB_SPEC CC_INC_SPEC LD_LIB_SPEC \
 LD_LIBRARY_PATH_VAR TCLLIBPATH TCL8_5_TM_PATH TCL8_6_TM_PATH JIMLIB \
 TCLSH_PROG JIMSH_PROG BJE SH \
 SHELL CLEAN DISTCLEAN DIST TEST TESTENV TESTFWK VPATH \
-DO_DOC DO_SCBIN DO_SCLIB PKGS \
+DO_DOC DO_SCBIN DO_SCLIB PKGS PKGS_DIR \
 cwd asrcdir srcdir appdir prefix pkgdir moddir mandir docdir exadir bindir SPOTO_ARGS
 EndSubstVars
 
@@ -126,6 +126,7 @@ NAME=''
 VERSION=''
 NAMESPACE=''
 PKG_NAME=''
+DIST_NAME=''
 TITLE=''
 
 DESCR=''
@@ -138,6 +139,7 @@ INIT=''
 SCLIBSRC=''
 
 PKGS=''
+PKGS_DIR=''
 
 #FOR_WHAT=Tcl
 #FOR_WHAT=Jim
@@ -244,9 +246,11 @@ SPOTO_ARGS="$@"
 
 . "$spoto_conf_file"
 
+EXT_CONF_FILES=''
 ext_conf_files=''
 set -- $EXT_CONF
 while test $# -ne 0; do
+  EXT_CONF_FILES="$EXT_CONF_FILES $1"
   ext_conf_file=$srcdir/$1
   shift
   ext_conf_files="$ext_conf_files $ext_conf_file"
@@ -257,6 +261,7 @@ while test $# -ne 0; do
     set -- $ext_conf
   fi
 done
+EXT_CONF_FILES=`expr "$EXT_CONF_FILES" : '^ \(..*\)$'`
 
 LIBDIR=''
 if get_bits "$LIB"; then
@@ -290,16 +295,20 @@ if test X"$NAME" = X""; then
   NAME=$name
 fi
 
-if test X"$PKG_NAME" = X""; then
-  PKG_NAME=$NAME
-fi
-
 if test X"$VERSION" = X""; then
   VERSION=$ver
 fi
 
 if test X"$NAMESPACE" = X""; then
   NAMESPACE=$namespace
+fi
+
+if test X"$PKG_NAME" = X""; then
+  PKG_NAME=$NAME
+fi
+
+if test X"$DIST_NAME" = X""; then
+  DIST_NAME='${NAME}-${VERSION}'
 fi
 
 if test X"$LIB" = X"" && test X"$ext" != X""; then
@@ -446,19 +455,13 @@ else
 fi
 
 if test -f ${srcdir}/Makefile.obsdport.in ; then o=${e} ; else o=: ; fi
-if test X"$DESCR"    = X"" ; then d=: ; else d=${e} ; fi
-if test X"$HOMEPAGE" = X"" ; then h=: ; else h=${e} ; fi
-if test X"$LICENSE"  = X"" ; then l=: ; else l=${e} ; fi
-if test X"$PKGS"     = X"" ; then p=: ; else p=${e} ; fi
+if test X"$PKGS" = X"" ; then p=: ; else p=${e} ; fi
 
 showhelpinfo=''
 showhelp=''
 showres=''
-showid=''
+showversion=''
 showinfo=''
-showdescr=''
-showhome=''
-showlicense=''
 showpkgs=''
 showpkgsid=''
 showpkgsinfo=''
@@ -497,13 +500,9 @@ do
     --docbld    ) DOCBLD=$value		;;
     --docfmt    ) DOCFMT=$value		;;
     --debug	) DEBUG=$value		;;
-    --id	) showid=yes		;;
+    --version	) showversion=yes	;;
     --info	) showinfo=yes		;;
-    --descr	) showdescr=yes		;;
-    --home	) showhome=yes		;;
-    --license	) showlicense=yes	;;
     --pkgs	) showpkgs=yes		;;
-    --pkgs-id	) showpkgsid=yes	;;
     --pkgs-info	) showpkgsinfo=yes	;;
     --pkgs-cfgnow ) PKGS_CFGNOW=$value	;;
     --obsdport	) portdir=$value	;;
@@ -536,21 +535,21 @@ if test X"$DESCR" != X""; then
   pkg_blurb="$pkg_blurb. ($DESCR)"
 fi
 
-if test X"$showid"      = X"yes"; then ${e} "$NAME $VERSION"; fi
-if test X"$showinfo"    = X"yes"; then ${e} "$pkg_info";      fi
-if test X"$showdescr"   = X"yes"; then ${e} "$DESCR";         fi
-if test X"$showhome"    = X"yes"; then ${e} "$HOMEPAGE";      fi
-if test X"$showlicense" = X"yes"; then ${e} "$LICENSE";       fi
-if test X"$showpkgs"    = X"yes"; then ${e} "$PKGS";          fi
+if test X"$showversion" = X"yes"; then ${e} "$VERSION";  fi
+if test X"$showpkgs"    = X"yes"; then ${e} "$PKGS";     fi
+if test X"$showinfo"    = X"yes"; then
+  printf 'package:    %s\ncategories: %s\nhomepage:   %s\nlicense:    %s\n' \
+    "$pkg_blurb" "$CATEGORIES" "$HOMEPAGE" "$LICENSE"
+fi
 
 if test X"$showpkgsid" = X"yes"; then
   for i in $PKGS; do (cd $srcdir/$NAME/$i && ./configure --id); done
 fi
 if test X"$showpkgsinfo" = X"yes"; then
-  for i in $PKGS; do (cd $srcdir/$NAME/$i && ./configure --info); done
+  for i in $PKGS; do (cd $srcdir/$NAME/$i && ./configure --info); ${e} ''; done
 fi
 
-if test X"${showid}${showinfo}${showdescr}${showhome}${showlicense}${showpkgs}${showpkgsid}${showpkgsinfo}" != X"" ; then
+if test X"${showversion}${showinfo}${showpkgs}${showpkgsid}${showpkgsinfo}" != X"" ; then
   exit
 fi
 
@@ -591,14 +590,10 @@ if test X"$showhelp" = X"yes"; then
   ${e} "  --docbld       file   Documentation builder [${DOCBLD}]"
   ${e} "  --docfmt       fmt    Documentation format [${DOCFMT}]"
   ${e} "  --debug        bool   Enable symbols and checks [${DEBUG}]"
-  ${e} '  --id                  Print name and version'
-  ${e} '  --info                Print name, version and FOR_WHAT'
-  ${d} '  --descr               Print a one-line description'
-  ${h} '  --home                Print the home page of the package'
-  ${l} '  --license             Print the license of the package'
+  ${e} '  --version             Print package version'
+  ${e} '  --info                Print package info'
   ${p} '  --pkgs                Print package names on one line'
-  ${p} '  --pkgs-id             Print package names and versions'
-  ${p} '  --pkgs-info           Print package names, versions and FOR_WHATs'
+  ${p} '  --pkgs-info           Print packages info'
   ${p} "  --pkgs-cfgnow  bool   Configure packages now [${PKGS_CFGNOW}]"
   ${o} "  --obsdport     dir    Create an OpenBSD port in dir [${portdir}]"
   ${e} '  --result              Print the result of a configuration'
@@ -711,6 +706,10 @@ else
   TESTFWK='all.tcl'
 fi
 
+if test X"$LIBDIR" != X""; then
+  PKG_INSTALL_DIR="$PKG_INSTALL_DIR/$LIBDIR"
+fi
+
 if false;then
 if test X"$LOAD_LIB" = X"tm"; then
   LOAD_LIB=source
@@ -802,6 +801,9 @@ if test X"$PKGS" != X""; then
   DIST=pkgs-dist
   INSTALL_EXA=pkgs-install
   EXT_BUILD=pkgs
+fi
+if test X"$PKGS_DIR" = X""; then
+  PKGS_DIR=pkgs
 fi
 
 if test X"$portdir" != X""; then
