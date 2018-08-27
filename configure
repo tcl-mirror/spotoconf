@@ -27,9 +27,9 @@ SED=sed
 
 read SUBST_VARS <<EndSubstVars
 FOR_WHAT TITLE NAME VERSION NAMESPACE PKG_NAME DIST_NAME DESCR CATEGORIES HOMEPAGE LICENSE \
-LIB DOC EXA SHLIB SCLIB SCLIBSRC DOCSRC DOCBLD DOCFMT \
-SCBIN SCBINSRC PKGINDEX CFG_PKGINDEX \
-LOAD_LIB INIT LIBDIR INSTALL_LIB INSTALL_DOC INSTALL_EXA INSTALL_BIN PKG_INSTALL_DIR DOC_INSTALL_DIR \
+LIB DOC EXA DAT_DIR DAT_FILES SHLIB SCLIB SCLIBSRC DOCSRC DOCBLD DOCFMT \
+SCBIN SCBINSRC PKGINDEX CFG_PKGINDEX LOAD_LIB INIT \
+LIBDIR INSTALL_LIB INSTALL_DOC INSTALL_EXA INSTALL_DAT INSTALL_BIN INSTALL_EXTRA PKG_INSTALL_DIR DOC_INSTALL_DIR \
 CC CFLAGS_CC CFLAGS_WARN CFLAGS_OPT CFLAGS_DEBUG CFLAGS_SH CFLAGS_TH \
 DEFS_TH DEFS_OPT DEFS_SPOT DEFS_TCL DEFS_JIM DEFS \
 LDFLAGS LDFLAGS_SH LIBS_TH \
@@ -38,8 +38,8 @@ TCL_INC_SPEC TCL_LIB_SPEC TCL_STUB_LIB_SPEC JIM_INC_SPEC JIM_LIB_SPEC CC_INC_SPE
 LD_LIBRARY_PATH_VAR TCLLIBPATH TCL8_5_TM_PATH TCL8_6_TM_PATH JIMLIB \
 TCLSH_PROG JIMSH_PROG BJE SH \
 SHELL CLEAN DISTCLEAN DIST TEST TESTENV TESTFWK VPATH \
-DO_DOC DO_SCBIN DO_SCLIB PKGS PKGS_DIR \
-cwd asrcdir srcdir appdir prefix pkgdir moddir mandir docdir exadir bindir SPOTO_ARGS
+BUILD_SCLIB BUILD_SCBIN BUILD_DOC PKGS PKGS_DIR \
+cwd asrcdir srcdir appdir prefix pkgdir moddir mandir docdir exadir datdir bindir SPOTO_ARGS
 EndSubstVars
 
 read OP_SUBST_VARS <<EndOpSubstVars
@@ -64,48 +64,29 @@ get_bits() {
   name=''
   ver=''
   ext=''
-  title=$1
-						${de} title:"$title"
-  descr=`expr "$title" : '^..*^\(..*\)$'`
-						${de} descr:"$descr"
-  if test X"$descr" != X""; then
-    title=`expr "$title" : '^\(..*\)^..*$'`
+  arg=$1
+  title=`expr "$arg" : '^\(..*\)-..*$'`
+  ver=`expr "$arg" : "^$title"'-\(..*\)\...*$'`
+  ext=`expr "$arg" : "^${title}-${ver}"'\.\(..*\)$'`
+  if expr "$ext" : '[0-9][0-9]*' > /dev/null; then
+    ver=$ver.$ext
+    ext=''
   fi
-  z=$title  
-  title=`expr "$title" : '^\(..*\)-..*$'`
-
-						${de} descr:"$descr"
-						${de} title:"$title"
-						${de} ver:"$ver"
-						${de} ext:"$ext"
-  ver=`expr "$z" : "^$title"'-\(..*\)\...*$'`
-  ext=`expr "$z" : "^${title}-${ver}"'\.\(..*\)$'`
-						${de} descr:"$descr"
-						${de} title:"$title"
-						${de} ver:"$ver"
-						${de} ext:"$ext"
-
-  if test X"$title" = X"" || test X"$ver" = X"" || test X"$ext" = X""; then return 1; fi
-  namespace=`tolower "$title"`
-  name=`expr "$title" : '^..*::\(..*\)$'`
+  if test X"$title" = X"" || test X"$ver" = X""; then return 1; fi
+  name=`expr "$title" : '^..*::\(..*\)$'` || name=$title
   name=`tolower $name`
+  namespace=`tolower "$title"`
   nsp=`expr "$namespace" : '^\(..*\)::..*$'`
   q='';oifs=$IFS;IFS=':';for j in $nsp;do for i in $j;do q="$q $i";done;done;IFS=$oifs;q=`expr "$q" : '^ \(..*\)$'`
   for i in $q; do
     libdirs="${libdirs}${i}/"
   done
   namespace="::$namespace"
-						${de} fname:^"$name"^
-						${de} ftitle:^"$title"^
-						${de} fver:^"$ver"^
-						${de} fext:^"$ext"^
-						${de} fnamespace:^"$namespace"^
-						${de} flibdirs:^"$libdirs"^
 }
 
 showres() {
   SVARS="$SUBST_VARS"
-  if test -f Makefile.obsdport; then SVARS="$SVARS $OP_SUBST_VARS"; fi
+  if test -f Makefile.portobsd; then SVARS="$SVARS $OP_SUBST_VARS"; fi
   for i in $SVARS; do
     printf '%-20s {@%s@}\n' $i $i
   done | ${SED} -f spoto.sed
@@ -167,6 +148,7 @@ mandir='${prefix}/man/mann'
 docdir=''
 #exadir='${prefix}/share/examples'
 exadir=''
+datdir=''
 
 pkgdir=''
 moddir=''
@@ -196,6 +178,9 @@ PKGINDEX=''
 DOC=''
 DOCBLD=dtplite
 EXA=''
+DAT=''
+DAT_DIR=''
+DAT_FILES=''
 BIN=''
 BINSRC=''
 TESTENV=''
@@ -217,11 +202,13 @@ EXT_CONF=''
 EXT_MK=''
 
 INSTALL_EXA=''
+INSTALL_DAT=''
+INSTALL_EXTRA=''
 
 DO=''
-DO_SCLIB=''
-DO_DOC=''
-DO_SCBIN=''
+BUILD_SCLIB=''
+BUILD_SCBIN=''
+BUILD_DOC=''
 
 OP_MAINTAINER=''
 OP_CATEGORIES=''
@@ -270,11 +257,17 @@ if get_bits "$LIB"; then
 else
   if get_bits "$BIN"; then
     BIN=${name}.${ext}
+echo $BIN
     ext=''
   else
-    if ! get_bits "$TITLE"; then
-      title=$TITLE
-      name=$NAME
+    if get_bits "$DAT"; then
+      INSTALL_DAT='install-dat'
+      ext=''
+    else
+      if ! get_bits "$TITLE"; then
+        title=$TITLE
+        name=$NAME
+      fi
     fi
   fi
 fi
@@ -320,10 +313,6 @@ fi
 
 if test X"$TITLE" = X""; then
   TITLE=$title
-fi
-
-if test X"$DESCR" = X""; then
-  DESCR=$descr
 fi
 
 if test X"$EXT_VPATH" != X""; then
@@ -442,6 +431,10 @@ if test X"$exadir" = X""; then
   exadir='${prefix}/share/examples/${appdir}'
 fi
 
+if test X"$datdir" = X""; then
+  datdir='${prefix}/share/${appdir}'
+fi
+
 if test X"$bindir" = X""; then
   bindir='${prefix}/bin'
 fi
@@ -454,7 +447,7 @@ else
   j=:
 fi
 
-if test -f ${srcdir}/Makefile.obsdport.in ; then o=${e} ; else o=: ; fi
+if test -f ${srcdir}/Makefile.portobsd.in ; then o=${e} ; else o=: ; fi
 if test X"$PKGS" = X"" ; then p=: ; else p=${e} ; fi
 
 showhelpinfo=''
@@ -487,6 +480,7 @@ do
     --mandir	) mandir=$value		;;
     --docdir	) docdir=$value		;;
     --exadir	) exadir=$value		;;
+    --datdir	) datdir=$value		;;
     --tcl	) tcl=$value		;;
     --pkgconfig	) PKGCONFIG=$value	;;
     --with-tcl	) TCL_CONF_DIR=$value	;;
@@ -505,7 +499,7 @@ do
     --pkgs	) showpkgs=yes		;;
     --pkgs-info	) showpkgsinfo=yes	;;
     --pkgs-cfgnow ) PKGS_CFGNOW=$value	;;
-    --obsdport	) portdir=$value	;;
+    --port-obsd	) portdir=$value	;;
     --result	) showres=yes		;;
     --quiet	) ECHO=:		;;
     -\?|--help	) showhelp=yes		;;
@@ -538,7 +532,7 @@ fi
 if test X"$showversion" = X"yes"; then ${e} "$VERSION";  fi
 if test X"$showpkgs"    = X"yes"; then ${e} "$PKGS";     fi
 if test X"$showinfo"    = X"yes"; then
-  printf 'package:    %s\ncategories: %s\nhomepage:   %s\nlicense:    %s\n' \
+  printf 'package    : %s\ncategories : %s\nhomepage   : %s\nlicense    : %s\n' \
     "$pkg_blurb" "$CATEGORIES" "$HOMEPAGE" "$LICENSE"
 fi
 
@@ -578,6 +572,7 @@ if test X"$showhelp" = X"yes"; then
   ${e} "  --mandir       dir    Man files dir [${mandir}]"
   ${e} "  --docdir       dir    Documentation files dir [${docdir}]"
   ${e} "  --exadir       dir    Example files dir [${exadir}]"
+  ${e} "  --datdir       dir    Data files dir [${datdir}]"
   ${e} "  --pkgconfig    key    Key for pkg-config [${PKGCONFIG}]"
   ${t} "  --with-tcl     dir    Where to find tclConfig.sh [${TCL_CONF_DIR}]"
   ${j} "  --jimincdir    dir    Where to find Jim include files [${JIM_INC_DIR}]"
@@ -595,7 +590,7 @@ if test X"$showhelp" = X"yes"; then
   ${p} '  --pkgs                Print package names on one line'
   ${p} '  --pkgs-info           Print packages info'
   ${p} "  --pkgs-cfgnow  bool   Configure packages now [${PKGS_CFGNOW}]"
-  ${o} "  --obsdport     dir    Create an OpenBSD port in dir [${portdir}]"
+  ${o} "  --port-obsd    dir    Create an OpenBSD port in dir [${portdir}]"
   ${e} '  --result              Print the result of a configuration'
   ${e} '  --quiet               Do not display configure messages'
   ${e} '  --help, -?            This information'
@@ -716,17 +711,14 @@ if test X"$LOAD_LIB" = X"tm"; then
 fi
 fi
 
-if test X"$DO" = X""; then
-  DO='ln -s ${cwd}/$> $^ $@'
+if test X"$BUILD_SCLIB" = X""; then
+  BUILD_SCLIB='ln -s ${cwd}/$> $^ $@'
 fi
-if test X"$DO_SCLIB" = X""; then
-  DO_SCLIB="$DO"
+if test X"$BUILD_SCBIN" = X""; then
+  BUILD_SCBIN='ln -s ${cwd}/$> $^ $@'
 fi
-if test X"$DO_DOC" = X""; then
-  DO_DOC="$DO"
-fi
-if test X"$DO_SCBIN" = X""; then
-  DO_SCBIN="$DO"
+if test X"$BUILD_DOC" = X""; then
+  BUILD_DOC='ln -s ${srcdir}/doc/${DOC} ${DOC}'
 fi
 
 DEFS_OPT='-DPACKAGE_NAME=\\"'"$PKG_NAME"'\\" -DPACKAGE_VERSION=\\"'"$VERSION"'\\"'
@@ -798,8 +790,8 @@ if test X"$PKGS" != X""; then
   DISTCLEAN="pkgs-distclean $DISTCLEAN"
   TEST="pkgs-test $TEST"
   SHELL=pkgs-shell
-  DIST=pkgs-dist
-  INSTALL_EXA=pkgs-install
+  DIST="$DIST pkgs-dist"
+  INSTALL_EXTRA="$INSTALL_EXTRA pkgs-install"
   EXT_BUILD=pkgs
 fi
 if test X"$PKGS_DIR" = X""; then
@@ -815,7 +807,7 @@ if test X"$portdir" != X""; then
     ISC* ) OP_LICENSE_OK=Yes   ;;
     BSD* ) OP_LICENSE_OK=Yes   ;;
     MIT* ) OP_LICENSE_OK=Yes   ;;
-     PD* ) OP_LICENSE_OK=Maybe ;;
+     PD* ) OP_LICENSE_OK=Yes   ;;
     GPL* ) OP_LICENSE_OK=Maybe ;;
        * ) OP_LICENSE_OK=No    ;;
   esac
@@ -834,8 +826,7 @@ if test X"$portdir" != X""; then
     OP_MAINTAINER=`whoami`@`hostname`
   fi
   EXT_MK=''
-  sfiles=Makefile.obsdport.in
-  CATEGORIES='graphics x11 devel'
+  sfiles=Makefile.portobsd.in
   for i in $CATEGORIES; do category=$i; break; done
   portdir=${portdir}${category}/${PKG_NAME}/
   ${ECHO} "Creating OpenBSD port in $portdir"
@@ -866,15 +857,25 @@ for i in $SUBST_VARS; do
   printf 's\001@%s@\001%s\001g\n' $i "$q"
 done >> ${portdir}spoto.sed
 
-for ifile in $sfiles; do
-  ofile=`expr $ifile : '\(..*\)\.in$'`
-  INFILE=$srcdir/$ifile
-  OUTFILE=${portdir}${ofile}
-  ${ECHOSN} "$OUTFILE"
-  ${SED} -f ${portdir}spoto.sed < "$INFILE" > "$OUTFILE"
-done
+do_out() {
+  for ifile in $sfiles; do
+    ofile=`expr $ifile : '\(..*\)\.in$'`
+    INFILE=$srcdir/$ifile
+    OUTFILE=${portdir}${ofile}
+    ${ECHOSN} "$OUTFILE"
+   ${SED} -f ${portdir}spoto.sed < "$INFILE" > "$OUTFILE"
+  done
+}
 
 if test X"$portdir" != X""; then
+  if test X"$FOR_WHAT" = X"Jim"; then
+    printf '%s\n' '/MODULES/d'
+    printf '%s\n' '/MODTCL_VERSION/d'
+    printf '%s\n' '/CONFIGURE_ARGS/d'
+  else
+    printf '%s\n' '/^WANTLIB/d'
+  fi >> ${portdir}spoto.sed
+  do_out
   portdir=${portdir}pkg/
   OUTFILE=${portdir}DESCR
   ${ECHOSN} "$OUTFILE"
@@ -884,6 +885,8 @@ if test X"$portdir" != X""; then
   else
     ${e} "$DESCR" > "$OUTFILE"
   fi
+else
+  do_out
 fi
 
 ${ECHO} ''

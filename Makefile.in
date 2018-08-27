@@ -19,6 +19,7 @@ moddir		= @moddir@
 mandir		= @mandir@
 docdir		= @docdir@
 exadir		= @exadir@
+datdir		= @datdir@
 bindir		= @bindir@
 
 VPATH		= @VPATH@
@@ -117,6 +118,11 @@ P		= printf
 EN		= $(P) %s
 E		= $(EN)'\n'
 
+.SUFFIXES: .man .n .html
+
+.man.html .man.n:
+	${DOCBLD} -o $@ ${DOCFMT} $<
+
 all: ${LIBDIR} ${SHLIB} ${SCLIB} ${PKGINDEX} ${DOC} ${SCBIN} ${EXT_BUILD}
 
 $(OBJ): $(SRC) ${EXT_DEP_FILES}
@@ -156,16 +162,13 @@ ${LIBDIR}: ${LIBDIR}
 	$(INSTALL_DATA_DIR) ${LIBDIR}
 
 ${SCLIB}: ${SCLIBSRC}
-	@DO_SCLIB@
+	@BUILD_SCLIB@
 
-${srcdir}/doc/${DOC}: ${DOCSRC}
-	${DOCBLD} -o $@ ${DOCFMT} $> $^
+${SCBIN}: ${SCBINSRC}
+	@BUILD_SCBIN@
 
 ${DOC}: ${srcdir}/doc/${DOC}
-	@DO_DOC@
-
-${SCBIN}: ${srcdir}/bin/${SCBINSRC}
-	@DO_SCBIN@
+	@BUILD_DOC@
 
 pkgIndex.tcl:
 	$(E) 'package ifneeded ${PKG_NAME} ${VERSION} [list @LOAD_LIB@ [file join $$dir ${LIB}] ${INIT}]' > pkgIndex.tcl
@@ -242,7 +245,7 @@ no-test:
 
 test: @TEST@
 
-install: all @INSTALL_LIB@ @INSTALL_DOC@ @INSTALL_BIN@ @INSTALL_EXA@
+install: all @INSTALL_LIB@ @INSTALL_DOC@ @INSTALL_BIN@ @INSTALL_EXA@ @INSTALL_DAT@ @INSTALL_EXTRA@
 
 install-bin-lib: install-lib
 
@@ -298,6 +301,24 @@ install-exa:
 	done
 	@$(E) ''
 
+install-dat:
+	@$(P) 'Installing %s files in %s\n' dat $(DESTDIR)${datdir}/
+	@$(INSTALL_DATA_DIR) $(DESTDIR)${datdir}
+	@$(EN) $(INDENT)
+	@DIR="@DAT_DIR@"; \
+	list='@DAT_FILES@'; \
+	for p in $$list; do \
+	    op=$$p; \
+	    p=$$DIR/$$p; \
+	    DDIR=`dirname $$p`; \
+	    if ! test -d $(DESTDIR)${datdir}/$$DDIR; then \
+		$(INSTALL_DATA_DIR) $(DESTDIR)${datdir}/$$DDIR; \
+	    fi; \
+	    $(EN) "$$op "; \
+	    $(INSTALL_DATA) ${srcdir}/$$p $(DESTDIR)${datdir}/$$DDIR/; \
+	done
+	@$(E) ''
+
 dist: dist-clean dist-setup @DIST@ dist-compress
 
 dist-clean:
@@ -321,9 +342,15 @@ dist-spot:
 	for p in $$list; do \
 	    $(DIST_INSTALL_DATA) ${srcdir}/$$DIR/$$p $(DIST_DIR)/$$DIR/; \
 	done
+	list='Makefile.portobsd.in'; \
+	for p in $$list; do \
+	    if test -f ${srcdir}/$$p; then \
+		$(DIST_INSTALL_DATA) ${srcdir}/$$p $(DIST_DIR)/; \
+	    fi; \
+	done
 
 dist-ext: dist-spot
-	list='RELEASE Makefile.${NAME}.in'; \
+	list='RELEASE Makefile.${NAME}.in UNLICENSE'; \
 	for p in $$list; do \
 	    if test -f ${srcdir}/$$p; then \
 		$(DIST_INSTALL_DATA) ${srcdir}/$$p $(DIST_DIR)/; \
@@ -365,7 +392,7 @@ dist-ext: dist-spot
 	fi
 	DIR=tests; \
 	list='${TESTFWK} ${PKG_NAME}.test'; \
-	if test -d ${srcdir}/$$DIR; then \
+	if test X"@TEST@" != X"" && test -d ${srcdir}/$$DIR; then \
 	    $(INSTALL_DATA_DIR) $(DIST_DIR)/$$DIR; \
 	    for p in $$list; do \
 		$(DIST_INSTALL_DATA) ${srcdir}/$$DIR/$$p $(DIST_DIR)/$$DIR/; \
@@ -383,6 +410,18 @@ dist-ext: dist-spot
 		fi; \
 	    done; \
 	fi
+	DIR="@DAT_DIR@"; \
+	list='@DAT_FILES@'; \
+	for p in $$list; do \
+	    op=$$p; \
+	    p=$$DIR/$$p; \
+	    DDIR=`dirname $$p`; \
+	    if ! test -d ${srcdir}/$$DDIR; then continue; fi; \
+	    if ! test -d $(DIST_DIR)/$$DDIR; then \
+		$(INSTALL_DATA_DIR) $(DIST_DIR)/$$DDIR; \
+	    fi; \
+	    $(DIST_INSTALL_DATA) ${srcdir}/$$p $(DIST_DIR)/$$DDIR/; \
+	done
 	DIR=thatch; \
 	list='mkthatch'; \
 	if test -d ${srcdir}/$$DIR; then \
@@ -397,10 +436,12 @@ dist-check:
 
 # @EXT_MK@
 
-.PHONY: all reconfigure configure dist clean distclean @DIST@
-.PHONY: shell test install install-lib install-doc install-exa
-.PHONY: test-Tcl test-Jim no-test dist-clean dist-compress dist-spot
+.PHONY: all reconfigure configure dist clean distclean @DIST@ @INSTALL_EXTRA@
+.PHONY: shell test install install-lib install-doc install-exa install-dat
+.PHONY: test-Tcl test-Jim no-test
+.PHONY: dist-clean dist-start dist-compress dist-spot dist-ext
 .PHONY: result thatch dist-check
+.PHONY: @CLEAN@ @DISTCLEAN@
 
 # Spot o' Conf 0.8
 

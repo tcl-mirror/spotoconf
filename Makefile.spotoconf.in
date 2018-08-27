@@ -1,0 +1,14 @@
+spoto-install:
+	@$(EN) $(INDENT)
+	@$(EN) 'configure '; \
+	$(INSTALL_SCRIPT) ${srcdir}/configure $(DESTDIR)${datdir}/; \
+	list='Makefile.in LICENSE README README.licenses'; \
+	for i in $$list; do \
+	    $(EN) "$$i "; \
+	    $(INSTALL_DATA) ${srcdir}/$$i $(DESTDIR)${datdir}/; \
+	done; \
+	$(INSTALL_DATA_DIR) $(DESTDIR)${datdir}/tclconfig; \
+	$(EN) 'tclconfig/install-sh '; \
+	$(INSTALL_DATA) ${srcdir}/tclconfig/install-sh $(DESTDIR)${datdir}/tclconfig/
+	@$(E) ''
+

@@ -63,7 +63,7 @@ pkgs-install: all
 	    (cd $${p}$(B) && make install DESTDIR="$(DESTDIR)"); \
 	done
 
-pkgs-dist: pkgs-configure dist-spot
+pkgs-dist: pkgs-configure
 	$(DIST_INSTALL_DATA) ${srcdir}/Makefile.pkgs.in $(DIST_DIR)/
 	$(INSTALL_DATA_DIR) $(DIST_DIR)/${NAME}
 	pkgs='' && \
