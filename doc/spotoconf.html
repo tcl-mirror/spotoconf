@@ -1,0 +1,391 @@
+<!DOCTYPE html><html><head>
+<title>spotoconf - Spotoconf</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'spotoconf.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; 2018,2019 Stuart Cassoff &amp;lt;stwo@users.sourceforge.net&amp;gt;
+   -->
+<!-- spotoconf.1
+   -->
+<body><div class="doctools">
+<h1 class="doctools_title">spotoconf(1) 0.9 spotoconf &quot;Spotoconf&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>spotoconf - Configuration and build system</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">SETUP</a></li>
+<li class="doctools_section"><a href="#section3">Files</a></li>
+<li class="doctools_section"><a href="#section4">VARIABLES</a></li>
+<li class="doctools_section"><a href="#section5">TARGETS</a></li>
+<li class="doctools_section"><a href="#section6">GETTING FANCY</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Spot o' Conf is a TEA-inspired configure and build system
+	that caters to Tcl and Jim extensions.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">SETUP</a></h2>
+<p>Copy all required files to the source dir of the package
+	and create a spoto.conf file for the package. The spoto.conf
+	file will be executed by configure and should set any
+	variables required by the package.</p>
+<p>Building needs at minimum: configure, Makefile.in and a spoto.conf file for the package.
+	Installing needs at minimum: tclconfig/install-sh, LICENSE, README, README.licenses.</p>
+<p>Modify as needed; Spotoconf files are not auto-generated.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Files</a></h2>
+<dl class="doctools_definitions">
+<dt>configure</dt>
+<dd><p>Spotoconf's configure script.</p></dd>
+<dt>Makefile.in</dt>
+<dd><p>Spotoconf's Makefile.in.</p></dd>
+<dt>tclconfig/install-sh</dt>
+<dd></dd>
+<dt>LICENSE</dt>
+<dd></dd>
+<dt>spoto.conf</dt>
+<dd><p>Package's spoto.conf</p></dd>
+<dt>README</dt>
+<dd></dd>
+<dt>Makefile.pkgs.in</dt>
+<dd><p>Input Makefile for building a package that contains packages.</p></dd>
+<dt>README.licenses</dt>
+<dd></dd>
+<dt>doc</dt>
+<dd></dd>
+<dt>Makefile.portobsd.in</dt>
+<dd></dd>
+<dt>tests/all.tcl</dt>
+<dd><p>Test runner for use with tcltest.</p></dd>
+<dt>tests2k/all.tcl</dt>
+<dd><p>Test runner for use with tcltest2k.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">VARIABLES</a></h2>
+<p>These are the variables that are substituted into output files.</p>
+<dl class="doctools_definitions">
+<dt>FOR_WHAT</dt>
+<dd><p>Tcl or Jim. Default is Tcl.</p></dd>
+<dt>TITLE</dt>
+<dd><p>Title of the package. Mixed case aceeptable.</p></dd>
+<dt>NAME</dt>
+<dd><p>Name of the package. Should be lower case.</p></dd>
+<dt>VERSION</dt>
+<dd><p>Version of the package.</p></dd>
+<dt>NAMESPACE</dt>
+<dd><p>Namespace the package lives in.</p></dd>
+<dt>PKG_NAME</dt>
+<dd></dd>
+<dt>DIST_NAME</dt>
+<dd></dd>
+<dt>DESCR</dt>
+<dd><p>One line description of the package.</p></dd>
+<dt>CATEGORIES</dt>
+<dd><p>List of OpenBSD port categories of the package.</p></dd>
+<dt>HOMEPAGE</dt>
+<dd><p>The home page of the package.</p></dd>
+<dt>LICENSE</dt>
+<dd><p>The license of the package.</p></dd>
+<dt>LIB</dt>
+<dd></dd>
+<dt>DOC</dt>
+<dd></dd>
+<dt>EXA</dt>
+<dd></dd>
+<dt>DAT_DIR</dt>
+<dd></dd>
+<dt>DAT_FILES</dt>
+<dd></dd>
+<dt>SHLIB</dt>
+<dd></dd>
+<dt>SCLIB</dt>
+<dd></dd>
+<dt>SCLIBSRC</dt>
+<dd></dd>
+<dt>DOCSRC</dt>
+<dd></dd>
+<dt>DOCBLD</dt>
+<dd></dd>
+<dt>DOCFMT</dt>
+<dd></dd>
+<dt>SCBIN</dt>
+<dd></dd>
+<dt>SCBINSRC</dt>
+<dd></dd>
+<dt>PKGINDEX</dt>
+<dd></dd>
+<dt>CFG_PKGINDEX</dt>
+<dd></dd>
+<dt>LOAD_LIB</dt>
+<dd><p>How to load libraries. Either load or source.</p></dd>
+<dt>INIT</dt>
+<dd><p>Name of init function for .so libs.</p></dd>
+<dt>LIBDIR</dt>
+<dd></dd>
+<dt>INSTALL_LIB</dt>
+<dd></dd>
+<dt>INSTALL_DOC</dt>
+<dd></dd>
+<dt>INSTALL_EXA</dt>
+<dd></dd>
+<dt>INSTALL_DAT</dt>
+<dd></dd>
+<dt>INSTALL_BIN</dt>
+<dd></dd>
+<dt>INSTALL_EXTRA</dt>
+<dd></dd>
+<dt>PKG_INSTALL_DIR</dt>
+<dd></dd>
+<dt>DOC_INSTALL_DIR</dt>
+<dd></dd>
+<dt>CC</dt>
+<dd></dd>
+<dt>CFLAGS_CC</dt>
+<dd></dd>
+<dt>CFLAGS_WARN</dt>
+<dd></dd>
+<dt>CFLAGS_OPT</dt>
+<dd></dd>
+<dt>CFLAGS_DEBUG</dt>
+<dd></dd>
+<dt>CFLAGS_SH</dt>
+<dd></dd>
+<dt>CFLAGS_TH</dt>
+<dd></dd>
+<dt>DEFS_TH</dt>
+<dd></dd>
+<dt>DEFS_OPT</dt>
+<dd></dd>
+<dt>DEFS_SPOT</dt>
+<dd></dd>
+<dt>DEFS_TCL</dt>
+<dd></dd>
+<dt>DEFS_JIM</dt>
+<dd></dd>
+<dt>DEFS</dt>
+<dd></dd>
+<dt>LDFLAGS</dt>
+<dd></dd>
+<dt>LDFLAGS_SH</dt>
+<dd></dd>
+<dt>LIBS_TH</dt>
+<dd></dd>
+<dt>EXT_CONF_FILES</dt>
+<dd></dd>
+<dt>EXT_BUILD</dt>
+<dd></dd>
+<dt>EXT_DEFS</dt>
+<dd></dd>
+<dt>EXT_INC_SPEC</dt>
+<dd></dd>
+<dt>EXT_LIB_SPEC</dt>
+<dd></dd>
+<dt>EXT_DEP_FILES</dt>
+<dd></dd>
+<dt>TCL_INC_SPEC</dt>
+<dd></dd>
+<dt>TCL_LIB_SPEC</dt>
+<dd></dd>
+<dt>TCL_STUB_LIB_SPEC</dt>
+<dd></dd>
+<dt>JIM_INC_SPEC</dt>
+<dd></dd>
+<dt>JIM_LIB_SPEC</dt>
+<dd></dd>
+<dt>CC_INC_SPEC</dt>
+<dd></dd>
+<dt>LD_LIB_SPEC</dt>
+<dd></dd>
+<dt>LD_LIBRARY_PATH_VAR</dt>
+<dd></dd>
+<dt>TCLLIBPATH</dt>
+<dd></dd>
+<dt>TCL8_5_TM_PATH</dt>
+<dd></dd>
+<dt>TCL8_6_TM_PATH</dt>
+<dd></dd>
+<dt>JIMLIB</dt>
+<dd></dd>
+<dt>TCLSH_PROG</dt>
+<dd></dd>
+<dt>JIMSH_PROG</dt>
+<dd></dd>
+<dt>BJE</dt>
+<dd></dd>
+<dt>SH</dt>
+<dd></dd>
+<dt>SHELL</dt>
+<dd></dd>
+<dt>CLEAN</dt>
+<dd></dd>
+<dt>DISTCLEAN</dt>
+<dd></dd>
+<dt>DIST</dt>
+<dd></dd>
+<dt>TEST</dt>
+<dd></dd>
+<dt>TESTENV</dt>
+<dd></dd>
+<dt>TESTFWK</dt>
+<dd></dd>
+<dt>VPATH</dt>
+<dd></dd>
+<dt>BUILD_SCLIB</dt>
+<dd></dd>
+<dt>BUILD_SCBIN</dt>
+<dd></dd>
+<dt>BUILD_DOC</dt>
+<dd></dd>
+<dt>PKGS</dt>
+<dd></dd>
+<dt>PKGS_DIR</dt>
+<dd></dd>
+<dt>cwd</dt>
+<dd></dd>
+<dt>asrcdir</dt>
+<dd></dd>
+<dt>srcdir</dt>
+<dd></dd>
+<dt>appdir</dt>
+<dd></dd>
+<dt>prefix</dt>
+<dd></dd>
+<dt>pkgdir</dt>
+<dd></dd>
+<dt>moddir</dt>
+<dd></dd>
+<dt>mandir</dt>
+<dd></dd>
+<dt>docdir</dt>
+<dd></dd>
+<dt>exadir</dt>
+<dd></dd>
+<dt>datdir</dt>
+<dd></dd>
+<dt>bindir</dt>
+<dd></dd>
+<dt>SPOTO_ARGS</dt>
+<dd></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">TARGETS</a></h2>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">GETTING FANCY</a></h2>
+<p>Spotoconf can also determine a package's
+	NAME, TITLE, VERSION, and one of LIB, BIN, or DAT
+	from a fancy TITLE, LIB, BIN or DAT.
+	The formula is name-version.extension.
+	Ex. LIB=MyLib-1.2.tm will yield
+	NAME=mylib
+	TITLE=MyLib
+	VERSION=1.2
+	LIB=mylib-1.2.tm
+	SCLIB=mylib-1.2.tm
+	SCLIBSRC=mylib.tcl</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p>build, configure, distribute, install, test</p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Programming tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2018,2019 Stuart Cassoff &lt;stwo@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

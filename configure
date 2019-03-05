@@ -2,7 +2,7 @@
 
 # Spot o' Conf
 
-# Copyright (c) 2017,2018 Stuart Cassoff <stwo@users.sourceforge.net>
+# Copyright (c) 2017,2018,2019 Stuart Cassoff <stwo@users.sourceforge.net>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-SPOTO_VER=0.8
+SPOTO_VER=0.9
 
 SH=/bin/sh
 e='printf %s\n'
@@ -374,7 +374,7 @@ fi
 DOCFMT=''
 if test X"$DOC" != X""; then
   docext=`expr $DOC : '..*\.\(..*\)$'`
-  if test X"$docext" = X"n"; then
+  if expr "$docext" : '^[1-9n]$' >/dev/null; then
     DOCFMT=nroff
   fi
   if test X"$docext" = X"html"; then
@@ -392,6 +392,10 @@ if expr X"$BINSRC" : X'..*[.]tcl$' > /dev/null; then
   SCBIN="$BIN"
   SCBINSRC="$BINSRC"
   INSTALL_BIN='install-script-bin'
+fi
+
+if test X"$PKGS_DIR" = X""; then
+  PKGS_DIR=pkgs
 fi
 
 if test X"$appdir" = X""; then
@@ -453,10 +457,8 @@ if test X"$PKGS" = X"" ; then p=: ; else p=${e} ; fi
 showhelpinfo=''
 showhelp=''
 showres=''
-showversion=''
 showinfo=''
 showpkgs=''
-showpkgsid=''
 showpkgsinfo=''
 portdir='no'
 huh=''
@@ -494,7 +496,6 @@ do
     --docbld    ) DOCBLD=$value		;;
     --docfmt    ) DOCFMT=$value		;;
     --debug	) DEBUG=$value		;;
-    --version	) showversion=yes	;;
     --info	) showinfo=yes		;;
     --pkgs	) showpkgs=yes		;;
     --pkgs-info	) showpkgsinfo=yes	;;
@@ -529,21 +530,17 @@ if test X"$DESCR" != X""; then
   pkg_blurb="$pkg_blurb. ($DESCR)"
 fi
 
-if test X"$showversion" = X"yes"; then ${e} "$VERSION";  fi
 if test X"$showpkgs"    = X"yes"; then ${e} "$PKGS";     fi
 if test X"$showinfo"    = X"yes"; then
   printf 'package    : %s\ncategories : %s\nhomepage   : %s\nlicense    : %s\n' \
     "$pkg_blurb" "$CATEGORIES" "$HOMEPAGE" "$LICENSE"
 fi
 
-if test X"$showpkgsid" = X"yes"; then
-  for i in $PKGS; do (cd $srcdir/$NAME/$i && ./configure --id); done
-fi
 if test X"$showpkgsinfo" = X"yes"; then
-  for i in $PKGS; do (cd $srcdir/$NAME/$i && ./configure --info); ${e} ''; done
+  for i in $PKGS; do (cd $srcdir/$PKGS_DIR/$i && ./configure --info); ${e} ''; done
 fi
 
-if test X"${showversion}${showinfo}${showpkgs}${showpkgsid}${showpkgsinfo}" != X"" ; then
+if test X"${showinfo}${showpkgs}${showpkgsinfo}" != X"" ; then
   exit
 fi
 
@@ -585,7 +582,6 @@ if test X"$showhelp" = X"yes"; then
   ${e} "  --docbld       file   Documentation builder [${DOCBLD}]"
   ${e} "  --docfmt       fmt    Documentation format [${DOCFMT}]"
   ${e} "  --debug        bool   Enable symbols and checks [${DEBUG}]"
-  ${e} '  --version             Print package version'
   ${e} '  --info                Print package info'
   ${p} '  --pkgs                Print package names on one line'
   ${p} '  --pkgs-info           Print packages info'
@@ -636,16 +632,20 @@ fi
 
 DOCSRC=''
 if test X"$DOCFMT" != X"" && test X"$DOC" != X""; then
-  DOCNAME=`expr $DOC : '\(..*\)\..*$'`
-  DOCSRC=$DOCNAME.man
+  docname=`expr $DOC : '\(..*\)\..*$'`
+  DOCSRC=$docname.man
   VPATH="$VPATH"':${srcdir}/doc'
   if test X"$DOCFMT" = X"nroff"; then
     DOC_INSTALL_DIR='${mandir}'
-    DOC=$DOCNAME.n
+    if expr "$docext" : '^[1-9n]$' >/dev/null; then
+      DOC=$docname.$docext
+    else
+      DOC=$docname.n
+    fi
   fi
   if test X"$DOCFMT" = X"html"; then
     DOC_INSTALL_DIR='${docdir}'
-    DOC=$DOCNAME.html
+    DOC=$docname.html
   fi
   INSTALL_DOC=install-doc
 else
@@ -793,9 +793,6 @@ if test X"$PKGS" != X""; then
   DIST="$DIST pkgs-dist"
   INSTALL_EXTRA="$INSTALL_EXTRA pkgs-install"
   EXT_BUILD=pkgs
-fi
-if test X"$PKGS_DIR" = X""; then
-  PKGS_DIR=pkgs
 fi
 
 if test X"$portdir" != X""; then

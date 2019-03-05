@@ -65,13 +65,13 @@ pkgs-install: all
 
 pkgs-dist: pkgs-configure
 	$(DIST_INSTALL_DATA) ${srcdir}/Makefile.pkgs.in $(DIST_DIR)/
-	$(INSTALL_DATA_DIR) $(DIST_DIR)/${NAME}
+	$(INSTALL_DATA_DIR) $(DIST_DIR)/${PKGS_DIR}
 	pkgs='' && \
 	for p in $(PKGS); do \
 	    if expr $$p : '^..*-.*$$' > /dev/null; then \
 		pkg=$$p; \
 	    else \
-		pkg=$$p-$$(cd $${p}$(B) && ../${srcdir}/${PKGS_DIR}/$$p/configure --version); \
+		pkg=$$(cd $${p}$(B) && make print-dist-name); \
 	    fi; \
 	    pkgs="$$pkgs $$pkg"; \
 	    (cd $${p}$(B) && make dist) \

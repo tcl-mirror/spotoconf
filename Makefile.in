@@ -2,6 +2,8 @@
 # @TITLE@ - @DESCR@
 #
 
+.POSIX:
+
 NAME		= @NAME@
 PKG_NAME	= @PKG_NAME@
 VERSION		= @VERSION@
@@ -73,6 +75,9 @@ PKGINDEX	= @PKGINDEX@
 EXT_DEP_FILES	= @EXT_DEP_FILES@
 EXT_BUILD 	= @EXT_BUILD@
 
+DAT_DIR		= @DAT_DIR@
+DAT_FILES	= @DAT_FILES@
+
 PKGS		= @PKGS@
 PKGS_DIR	= @PKGS_DIR@
 
@@ -118,9 +123,9 @@ P		= printf
 EN		= $(P) %s
 E		= $(EN)'\n'
 
-.SUFFIXES: .man .n .html
+.SUFFIXES: .man .html .n .1
 
-.man.html .man.n:
+.man.html .man.n .man.1:
 	${DOCBLD} -o $@ ${DOCFMT} $<
 
 all: ${LIBDIR} ${SHLIB} ${SCLIB} ${PKGINDEX} ${DOC} ${SCBIN} ${EXT_BUILD}
@@ -319,6 +324,9 @@ install-dat:
 	done
 	@$(E) ''
 
+print-dist-name:
+	@$(E) $(DIST_NAME)
+
 dist: dist-clean dist-setup @DIST@ dist-compress
 
 dist-clean:
@@ -410,8 +418,8 @@ dist-ext: dist-spot
 		fi; \
 	    done; \
 	fi
-	DIR="@DAT_DIR@"; \
-	list='@DAT_FILES@'; \
+	DIR='${DAT_DIR}'; \
+	list='${DAT_FILES}'; \
 	for p in $$list; do \
 	    op=$$p; \
 	    p=$$DIR/$$p; \
@@ -440,9 +448,9 @@ dist-check:
 .PHONY: shell test install install-lib install-doc install-exa install-dat
 .PHONY: test-Tcl test-Jim no-test
 .PHONY: dist-clean dist-start dist-compress dist-spot dist-ext
-.PHONY: result thatch dist-check
+.PHONY: result thatch dist-check print-dist-name
 .PHONY: @CLEAN@ @DISTCLEAN@
 
-# Spot o' Conf 0.8
+# Spot o' Conf 0.9
 
 # EOF

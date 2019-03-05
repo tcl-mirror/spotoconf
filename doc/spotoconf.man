@@ -1,0 +1,191 @@
+[manpage_begin spotoconf 1 0.9]
+[moddesc   {Spotoconf}]
+[titledesc {Configuration and build system}]
+[category  {Programming tools}]
+[copyright {2018,2019 Stuart Cassoff <stwo@users.sourceforge.net>}]
+[keywords  configure build test install distribute]
+
+[description]
+
+	Spot o' Conf is a TEA-inspired configure and build system
+	that caters to Tcl and Jim extensions.
+
+[section {SETUP}]
+
+	Copy all required files to the source dir of the package
+	and create a spoto.conf file for the package. The spoto.conf
+	file will be executed by configure and should set any
+	variables required by the package.
+[para]
+	Building needs at minimum: configure, Makefile.in and a spoto.conf file for the package.
+	Installing needs at minimum: tclconfig/install-sh, LICENSE, README, README.licenses.
+[para]	
+	Modify as needed; Spotoconf files are not auto-generated.
+
+[section {Files}]
+
+[list_begin definitions]
+[def configure]
+	Spotoconf's configure script.
+[def Makefile.in]
+	Spotoconf's Makefile.in. 
+[def tclconfig/install-sh]
+
+[def LICENSE]
+[def spoto.conf]
+	Package's spoto.conf
+[def README]
+[def Makefile.pkgs.in]
+	Input Makefile for building a package that contains packages.
+[def README.licenses]
+[def doc]                      
+[def Makefile.portobsd.in]
+[def tests/all.tcl]
+	Test runner for use with tcltest.
+[def tests2k/all.tcl]
+	Test runner for use with tcltest2k.
+[list_end]
+
+
+[section {VARIABLES}]
+	These are the variables that are substituted into output files.
+
+[list_begin definitions]
+
+[def FOR_WHAT]
+	Tcl or Jim. Default is Tcl.
+[def TITLE]
+	Title of the package. Mixed case aceeptable.
+[def NAME]
+	Name of the package. Should be lower case.
+[def VERSION]
+	Version of the package.
+[def NAMESPACE]
+	Namespace the package lives in.
+[def PKG_NAME]
+
+[def DIST_NAME]
+[def DESCR]
+	One line description of the package.
+[def CATEGORIES]
+	List of OpenBSD port categories of the package.
+[def HOMEPAGE]
+	The home page of the package.
+[def LICENSE]
+	The license of the package.
+[def LIB]
+[def DOC]
+[def EXA]
+[def DAT_DIR]
+[def DAT_FILES]
+[def SHLIB]
+[def SCLIB]
+[def SCLIBSRC]
+[def DOCSRC]
+[def DOCBLD]
+[def DOCFMT]
+[def SCBIN]
+[def SCBINSRC]
+[def PKGINDEX]
+[def CFG_PKGINDEX]
+[def LOAD_LIB]
+	How to load libraries. Either load or source.
+[def INIT]
+	Name of init function for .so libs.
+[def LIBDIR]
+[def INSTALL_LIB]
+[def INSTALL_DOC]
+[def INSTALL_EXA]
+[def INSTALL_DAT]
+[def INSTALL_BIN]
+[def INSTALL_EXTRA]
+[def PKG_INSTALL_DIR]
+[def DOC_INSTALL_DIR]
+[def CC]
+[def CFLAGS_CC]
+[def CFLAGS_WARN]
+[def CFLAGS_OPT]
+[def CFLAGS_DEBUG]
+[def CFLAGS_SH]
+[def CFLAGS_TH]
+[def DEFS_TH]
+[def DEFS_OPT]
+[def DEFS_SPOT]
+[def DEFS_TCL]
+[def DEFS_JIM]
+[def DEFS]
+[def LDFLAGS]
+[def LDFLAGS_SH]
+[def LIBS_TH]
+[def EXT_CONF_FILES]
+[def EXT_BUILD]
+[def EXT_DEFS]
+[def EXT_INC_SPEC]
+[def EXT_LIB_SPEC]
+[def EXT_DEP_FILES]
+[def TCL_INC_SPEC]
+[def TCL_LIB_SPEC]
+[def TCL_STUB_LIB_SPEC]
+[def JIM_INC_SPEC]
+[def JIM_LIB_SPEC]
+[def CC_INC_SPEC]
+[def LD_LIB_SPEC]
+[def LD_LIBRARY_PATH_VAR]
+[def TCLLIBPATH]
+[def TCL8_5_TM_PATH]
+[def TCL8_6_TM_PATH]
+[def JIMLIB]
+[def TCLSH_PROG]
+[def JIMSH_PROG]
+[def BJE]
+[def SH]
+[def SHELL]
+[def CLEAN]
+[def DISTCLEAN]
+[def DIST]
+[def TEST]
+[def TESTENV]
+[def TESTFWK]
+[def VPATH]
+[def BUILD_SCLIB]
+[def BUILD_SCBIN]
+[def BUILD_DOC]
+[def PKGS]
+[def PKGS_DIR]
+[def cwd]
+[def asrcdir]
+[def srcdir]
+[def appdir]
+[def prefix]
+[def pkgdir]
+[def moddir]
+[def mandir]
+[def docdir]
+[def exadir]
+[def datdir]
+[def bindir]
+[def SPOTO_ARGS]
+
+[list_end]
+
+
+[section {TARGETS}]
+
+[section {GETTING FANCY}]
+
+	Spotoconf can also determine a package's
+	NAME, TITLE, VERSION, and one of LIB, BIN, or DAT
+	from a fancy TITLE, LIB, BIN or DAT.
+
+	The formula is name-version.extension.
+
+	Ex. LIB=MyLib-1.2.tm will yield
+	NAME=mylib
+	TITLE=MyLib
+	VERSION=1.2
+	LIB=mylib-1.2.tm
+	SCLIB=mylib-1.2.tm
+	SCLIBSRC=mylib.tcl
+
+
+[manpage_end]

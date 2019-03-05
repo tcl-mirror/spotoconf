@@ -5,7 +5,7 @@ why:	Tcl/Jim extension architecture.
 
 
 Spot o' Conf is a TEA-inspired configure and build system
-for Tcl and Jim extensions.
+that caters to Tcl and Jim extensions.
 
 Features:
   *  Build binary or script-only extensions for Tcl or Jim.
