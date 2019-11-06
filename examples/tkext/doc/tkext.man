@@ -1,0 +1,24 @@
+[manpage_begin tclext n 0.1]
+[require   Tcl 8.6]
+[require   tclext [opt 0.1]]
+[moddesc   {tclext}]
+[titledesc {Tcl Extension}]
+[category  {Build System}]
+[copyright {2019 Stuart Cassoff <stwo@users.sourceforge.net>}]
+[keywords  configure build]
+
+[description]
+
+	The Tclext Tcl extension is a simple extension used to demonstrate building Tcl extensions with Spot o' Conf.
+
+[section COMMANDS]
+
+
+[list_begin definitions]
+
+	[call [cmd tclext] [arg string]]
+		Returns [arg string].
+
+[list_end]
+
+[manpage_end]

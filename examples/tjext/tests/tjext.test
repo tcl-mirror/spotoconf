@@ -1,0 +1,27 @@
+#
+# Test TJext
+#
+
+source [file dirname [info script]]/testing.tcl
+package require tjext
+
+test tjext-1.1 {tjext command: wrong # args} -body {
+	tjext
+} -returnCodes error -result {wrong # args: should be "tjext string"}
+
+test tjext-1.2 {tjext command: wrong # args} -body {
+	tjext a cow
+} -returnCodes error -result {wrong # args: should be "tjext string"}
+
+
+test tjext-2.1 {tjext command: works ok} -body {
+	tjext itworks!
+} -result itworks!
+
+
+::tcltest::cleanupTests
+flush stdout
+return
+
+
+# EOF

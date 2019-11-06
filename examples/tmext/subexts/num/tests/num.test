@@ -1,0 +1,53 @@
+#
+# Test Tmext_num
+#
+
+package require Tcl 8.5
+
+package require tcltest 2
+namespace import tcltest::test
+
+package require tmext::num
+
+
+test tmext::num-1.1 {tmext::num ensemble command: wrong # args} -body {
+	tmext::num
+} -returnCodes error -result {wrong # args: should be "tmext::num subcommand ?arg ...?"}
+
+test tmext::num-1.2 {tmext::num ensemble command: bad subcommand} -body {
+	tmext::num cow
+} -returnCodes error -result {unknown or ambiguous subcommand "cow": must be minusone, or plusone}
+
+
+test tmext::num-2.1 {tmext::num minusone subcommand: wrong # args} -body {
+	tmext::num minusone
+} -returnCodes error -result {wrong # args: should be "tmext::num minusone num"}
+
+test tmext::num-2.2 {tmext::num minusone subcommand: wrong # args} -body {
+	tmext::num minusone 1 2
+} -returnCodes error -result {wrong # args: should be "tmext::num minusone num"}
+
+test tmext::num-2.3 {tmext::num minusone subcommand: works ok} -body {
+	tmext::num minusone 2
+} -result 1
+
+
+test tmext::num-3.1 {tmext::num plusone subcommand: wrong # args} -body {
+	tmext::num plusone
+} -returnCodes error -result {wrong # args: should be "tmext::num plusone num"}
+
+test tmext::num-3.2 {tmext::num plusone subcommand: wrong # args} -body {
+	tmext::num plusone 1 2
+} -returnCodes error -result {wrong # args: should be "tmext::num plusone num"}
+
+test tmext::num-3.3 {tmext::num plusone subcommand: works ok} -body {
+	tmext::num plusone 1
+} -result 2
+
+
+::tcltest::cleanupTests
+flush stdout
+return
+
+
+# EOF

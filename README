@@ -9,8 +9,9 @@ that caters to Tcl and Jim extensions.
 
 Features:
   *  Build binary or script-only extensions for Tcl or Jim.
-  *  Build build/install documentation and examples.
+  *  Build packages containing only data files.
+  *  Build and install documentation and examples.
   *  Run tests and make distribution files.
   *  Supports pkg-config.
   *  Extensible.
-  *  Simple and fast.  
+  *  Simple and fast.

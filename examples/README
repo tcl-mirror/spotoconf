@@ -1,0 +1,16 @@
+The Spot 'o Conf examples are:
+
+cprog      : C program.
+jimext     : Jim extension.
+tclext_c   : Tcl extension in C.
+tclext_tcl : Tcl extension in Tcl.
+tclext_tm  : Tcl extension in Tcl as a Tcl Module.
+tjext      : Tcl/Jim extension.
+tkext      : Tk extension.
+tmext      : Tcl Module extension with submodules.
+
+The toplevel examples directory is an
+example of a multi-packages configuration.
+
+The toplevel Spot o' Conf directory is an
+example of a data-files (DAT) configuration.

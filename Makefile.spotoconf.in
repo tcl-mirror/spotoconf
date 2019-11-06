@@ -7,33 +7,9 @@ spoto-install:
 	    $(EN) "$$i "; \
 	    $(INSTALL_DATA) ${srcdir}/$$i $(DESTDIR)${datdir}/; \
 	done; \
-	$(INSTALL_DATA_DIR) $(DESTDIR)${datdir}/tclconfig; \
-	$(EN) 'tclconfig/install-sh '; \
-	$(INSTALL_DATA) ${srcdir}/tclconfig/install-sh $(DESTDIR)${datdir}/tclconfig/
+	$(INSTALL_DATA_DIR) $(DESTDIR)${datdir}/Spotoconf; \
+	$(EN) 'Spotoconf/install-sh '; \
+	$(INSTALL_DATA) ${srcdir}/Spotoconf/install-sh $(DESTDIR)${datdir}/Spotoconf/; \
+	$(EN) 'Spotoconf/spotoshell.c '; \
+	$(INSTALL_DATA) ${srcdir}/Spotoconf/spotoshell.c $(DESTDIR)${datdir}/Spotoconf/
 	@$(E) ''
-
-spoto-dist: dist-spot
-	list='Makefile.${NAME}.in'; \
-	for p in $$list; do \
-	    $(DIST_INSTALL_DATA) ${srcdir}/$$p $(DIST_DIR)/; \
-	done
-	DIR=doc; \
-	list='${NAME}.man ${NAME}.1 ${NAME}.html'; \
-	if test -d ${srcdir}/$$DIR; then \
-	    $(INSTALL_DATA_DIR) $(DIST_DIR)/$$DIR; \
-	    for p in $$list; do \
-		$(DIST_INSTALL_DATA) ${srcdir}/$$DIR/$$p $(DIST_DIR)/$$DIR/; \
-	    done; \
-	fi
-	DIR='${DAT_DIR}'; \
-	list='${DAT_FILES}'; \
-	for p in $$list; do \
-	    op=$$p; \
-	    p=$$DIR/$$p; \
-	    DDIR=`dirname $$p`; \
-	    if ! test -d ${srcdir}/$$DDIR; then continue; fi; \
-	    if ! test -d $(DIST_DIR)/$$DDIR; then \
-		$(INSTALL_DATA_DIR) $(DIST_DIR)/$$DDIR; \
-	    fi; \
-	    $(DIST_INSTALL_DATA) ${srcdir}/$$p $(DIST_DIR)/$$DDIR/; \
-	done

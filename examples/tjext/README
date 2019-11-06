@@ -1,0 +1,23 @@
+what:	Tcl/Jim extension
+where:  https://chiselapp.com/user/stwo/repository/spotoconf
+who:	Stuart Cassoff <stwo@users.sourceforge.net>
+why:	Spotoconf example for a Tcl/Jim extension
+how:	$ /path/to/configure ?options? && make
+how:	$ make test
+how:	$ make install
+need:	Tcl, Tk, POSIX
+
+This is an example using uses Ezt
+(https://chiselapp.com/user/stwo/repository/ezt)
+to write an extension that can be built for Tcl or Jim.
+
+This package will build for Tcl by default.
+To build for Jim:
+$ FOR_WHAT=Jim /path/to/configure --options...
+
+This package should build easily on any POSIX system.
+
+This package uses Spot o' Conf to configure and build.
+
+By default, this package will be configured to build
+threaded for Tcl/Tk 8.6 (threaded) on OpenBSD.

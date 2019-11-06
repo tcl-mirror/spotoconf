@@ -1,0 +1,31 @@
+what:	Tcl extension (Multi Tm)
+where:  https://chiselapp.com/user/stwo/repository/spotoconf
+who:	Stuart Cassoff <stwo@users.sourceforge.net>
+why:	Spotoconf example for a multi-module Tcl Module.
+how:	$ /path/to/configure ?options? && make
+how:	$ make test
+how:	$ make install
+need:	Tcl, POSIX
+
+A multi-package Tcl Module extension.
+Each package adds a subcommand to the main ensemble.
+
+Problem with this approach:
+The tm path cannot be set to the main package and
+the subpackages because the subpackages are in child
+directories of the main package and that is not
+permitted by the tm mechanism.
+This makes it impossible to work from a subpackage
+directory; a developer would have to work from
+a configure/build directory for the entire package.
+This would not be a problem if the subpackages
+did not depend on the main package ie. the main
+package has no code and simply serves to collect
+the individual packages.
+
+This package should build easily on any POSIX system.
+
+This package uses Spot o' Conf to configure and build.
+
+By default, this package will be configured to build
+threaded for Tcl 8.6 (threaded) on OpenBSD.

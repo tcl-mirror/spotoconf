@@ -1,0 +1,15 @@
+what:	Jim extension
+where:  https://chiselapp.com/user/stwo/repository/spotoconf
+who:	Stuart Cassoff <stwo@users.sourceforge.net>
+why:	Spotoconf example for a Jim extension
+how:	$ /path/to/configure ?options? && make
+how:	$ make test
+how:	$ make install
+need:	Jim, POSIX
+
+This package should build easily on any POSIX system.
+
+This package uses Spot o' Conf to configure and build.
+
+By default, this package will be configured to build
+for Jim on OpenBSD.

@@ -1,0 +1,28 @@
+#
+# Test Spotoconfexamples
+#
+
+package require Tcl 8.5
+
+package require tcltest 2
+namespace import tcltest::test
+
+package require tclext_c
+package require tclext_tcl
+
+
+test spotoconfexamples-1.0 {tclext_c -> tclext_tcl} -body {
+	tclext_tcl [tclext_c itworks!]
+} -result itworks!
+
+test spotoconfexamples-1.1 {tclext_tcl -> tclext_c} -body {
+	tclext_c [tclext_tcl itworks!]
+} -result itworks!
+
+
+::tcltest::cleanupTests
+flush stdout
+return
+
+
+# EOF

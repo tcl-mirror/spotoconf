@@ -1,0 +1,27 @@
+#
+# Test Jimext
+#
+
+source [file dirname [info script]]/testing.tcl
+package require jimext
+
+test jimext-1.1 {jimext command: wrong # args} -body {
+	jimext
+} -returnCodes error -result {wrong # args: should be "jimext string"}
+
+test jimext-1.2 {jimext command: wrong # args} -body {
+	jimext a cow
+} -returnCodes error -result {wrong # args: should be "jimext string"}
+
+
+test jimext-2.1 {jimext command: works ok} -body {
+	jimext itworks!
+} -result itworks!
+
+
+::tcltest::cleanupTests
+flush stdout
+return
+
+
+# EOF

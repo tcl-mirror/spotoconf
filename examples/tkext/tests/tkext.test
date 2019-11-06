@@ -1,0 +1,33 @@
+#
+# Test Tkext
+#
+#
+# Stuart Cassoff
+# Spring 2019
+#
+
+package require Tcl 8.5
+
+package require tcltest 2
+namespace import tcltest::test
+
+package require tkext
+
+
+test tkext-1.1 {tkext command: wrong # args} -body {
+	tkext
+} -returnCodes error -result {wrong # args: should be "tkext pathName ?-option value ...?"}
+
+test tkext-1.2 {tkext command: bad path name} -body {
+	tkext q
+} -returnCodes error -result {bad window path name "q"}
+
+
+
+
+::tcltest::cleanupTests
+flush stdout
+return
+
+
+# EOF

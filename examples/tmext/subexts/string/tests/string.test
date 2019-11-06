@@ -1,0 +1,53 @@
+#
+# Test Tmext_string
+#
+
+package require Tcl 8.5
+
+package require tcltest 2
+namespace import tcltest::test
+
+package require tmext::string
+
+
+test tmext::string-1.1 {tmext::string ensemble command: wrong # args} -body {
+	tmext::string
+} -returnCodes error -result {wrong # args: should be "tmext::string subcommand ?arg ...?"}
+
+test tmext::string-1.2 {tmext::string ensemble command: bad subcommand} -body {
+	tmext::string cow
+} -returnCodes error -result {unknown or ambiguous subcommand "cow": must be lower, or upper}
+
+
+test tmext::string-2.1 {tmext::string lower subcommand: wrong # args} -body {
+	tmext::string lower
+} -returnCodes error -result {wrong # args: should be "tmext::string lower string"}
+
+test tmext::string-2.2 {tmext::string lower subcommand: wrong # args} -body {
+	tmext::string lower A B
+} -returnCodes error -result {wrong # args: should be "tmext::string lower string"}
+
+test tmext::string-2.3 {tmext::string lower subcommand: works ok} -body {
+	tmext::string lower A
+} -result a
+
+
+test tmext::string-3.1 {tmext::string upper subcommand: wrong # args} -body {
+	tmext::string upper
+} -returnCodes error -result {wrong # args: should be "tmext::string upper string"}
+
+test tmext::string-3.2 {tmext::string upper subcommand: wrong # args} -body {
+	tmext::string upper a b
+} -returnCodes error -result {wrong # args: should be "tmext::string upper string"}
+
+test tmext::string-3.3 {tmext::string upper subcommand: works ok} -body {
+	tmext::string upper a
+} -result A
+
+
+::tcltest::cleanupTests
+flush stdout
+return
+
+
+# EOF

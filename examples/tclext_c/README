@@ -1,0 +1,17 @@
+what:	Tcl extension (C)
+where:  https://chiselapp.com/user/stwo/repository/spotoconf
+who:	Stuart Cassoff <stwo@users.sourceforge.net>
+why:	Spotoconf example for a Tcl extension in C
+how:	$ /path/to/configure ?options? && make
+how:	$ make test
+how:	$ make install
+need:	Tcl, POSIX
+
+This package can be built shared or static.
+
+This package should build easily on any POSIX system.
+
+This package uses Spot o' Conf to configure and build.
+
+By default, this package will be configured to build
+threaded for Tcl 8.6 (threaded) on OpenBSD.

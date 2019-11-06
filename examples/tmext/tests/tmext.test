@@ -1,0 +1,32 @@
+#
+# Test Tmext
+#
+
+package require Tcl 8.5
+
+package require tcltest 2
+namespace import tcltest::test
+
+package require tmext
+
+
+test tmext-1.1 {tmext ensemble command: wrong # args} -body {
+	tmext
+} -returnCodes error -result {wrong # args: should be "tmext subcommand ?arg ...?"}
+
+test tmext-1.2 {tmext ensemble command: check no subcommands} -body {
+	tmext cow
+} -returnCodes error -result {unknown subcommand "cow": namespace ::tmext does not export any commands}
+
+
+test tmext-2.1 {tmext statement command: works ok} -body {
+	tmext::statement
+} -result "This is tmext"
+
+
+::tcltest::cleanupTests
+flush stdout
+return
+
+
+# EOF

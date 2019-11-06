@@ -1,0 +1,32 @@
+#
+# Test Tclext_tcl
+#
+
+package require Tcl 8.5
+
+package require tcltest 2
+namespace import tcltest::test
+
+package require tclext_tcl
+
+
+test tclext_tcl-1.1 {tclext_tcl command: wrong # args} -body {
+	tclext_tcl
+} -returnCodes error -result {wrong # args: should be "tclext_tcl string"}
+
+test tclext_tcl-1.2 {tclext_tcl command: wrong # args} -body {
+	tclext_tcl a cow
+} -returnCodes error -result {wrong # args: should be "tclext_tcl string"}
+
+
+test tclext_tcl-2.1 {tclext_tcl command: works ok} -body {
+	tclext_tcl itworks!
+} -result itworks!
+
+
+::tcltest::cleanupTests
+flush stdout
+return
+
+
+# EOF

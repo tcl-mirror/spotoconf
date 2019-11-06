@@ -1,4 +1,4 @@
-[manpage_begin spotoconf 1 0.9]
+[manpage_begin spotoconf 1 0.91]
 [moddesc   {Spotoconf}]
 [titledesc {Configuration and build system}]
 [category  {Programming tools}]
@@ -9,6 +9,9 @@
 
 	Spot o' Conf is a TEA-inspired configure and build system
 	that caters to Tcl and Jim extensions.
+
+
+	This document is out-of-date.
 
 [section {SETUP}]
 

@@ -1,0 +1,14 @@
+what:	C program
+where:  https://chiselapp.com/user/stwo/repository/spotoconf
+who:	Stuart Cassoff <stwo@users.sourceforge.net>
+why:	Spotoconf example for a C program
+how:	$ /path/to/configure ?options? && make
+how:	$ make test
+how:	$ make install
+need:	POSIX
+
+This package can be built shared or static.
+
+This package should build easily on any POSIX system.
+
+This package uses Spot o' Conf to configure and build.

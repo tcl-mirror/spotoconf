@@ -1,0 +1,22 @@
+#
+# Test Cprog
+#
+
+
+package require Tcl 8.5
+
+package require tcltest 2
+namespace import tcltest::test
+
+
+test cprog-1.0 {try running cprog} -body {
+	exec ./cprog
+} -result {Hello, World.}
+
+
+::tcltest::cleanupTests
+flush stdout
+return
+
+
+# EOF
